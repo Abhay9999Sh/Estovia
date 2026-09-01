@@ -11,6 +11,7 @@ import { createNotification } from "@/lib/notifications";
 import { findOrCreateConversation } from "@/lib/dialog";
 
 export const GET = withErrorHandling(async (request, ctx) => {
+  const user = await requireAuth();
   const { id } = await ctx.params;
   if (!mongoose.isValidObjectId(id)) return fail("Requirement not found.", 400);
   await connectDB();
@@ -20,6 +21,16 @@ export const GET = withErrorHandling(async (request, ctx) => {
     .populate("invitedSupplierIds", "businessName logo")
     .lean();
   if (!requirement) return fail("Requirement not found.", 404);
+  const builderId = requirement.builderId?._id || requirement.builderId;
+  const isBuilder = String(builderId) === String(user._id);
+  if (requirement.visibility === "private" && !isBuilder) {
+    const profile = await SupplierProfile.findOne({ userId: user._id }).lean();
+    const invited = (requirement.invitedSupplierIds || []).map((s) => String(s?._id || s));
+    const isInvited = profile && invited.includes(String(profile._id));
+    if (!isInvited) {
+      return fail("You are not authorized to view this requirement.", 403);
+    }
+  }
   return ok({ requirement });
 });
 

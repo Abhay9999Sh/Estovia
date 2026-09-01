@@ -43,7 +43,9 @@ function ApplicationsContent() {
   }, []);
 
   useEffect(() => {
-    load();
+    (async () => {
+      await load();
+    })();
   }, [load]);
 
   const filtered = tab === "all" ? (applications || []) : (applications || []).filter((a) => a.status === tab);

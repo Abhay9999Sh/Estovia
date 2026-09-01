@@ -56,7 +56,9 @@ function QuotationsContent() {
   }, [tab, requirementId]);
 
   useEffect(() => {
-    load();
+    (async () => {
+      await load();
+    })();
   }, [load]);
 
   function toggleCompare(id) {

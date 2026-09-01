@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import SupplierProfile from "@/lib/models/SupplierProfile";
 import { ok, fail, sanitizeText } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
+import { isValidIndianPhone, PHONE_ERROR } from "@/lib/phone";
 
 const DESIGNATIONS = ["Owner", "Director", "Partner", "Manager", "Authorized Representative", "Other"];
 const BUSINESS_TYPES = ["Private Limited", "Public Limited", "LLP", "Partnership", "Proprietorship", "Sole Trader", "Other"];
@@ -20,6 +21,15 @@ export const PUT = withErrorHandling(async (request) => {
   const body = await request.json();
   await connectDB();
 
+  const phone = sanitizeText(body.phone, 20).replace(/[\s\-()]/g, "").trim();
+  if (phone && !isValidIndianPhone(phone)) {
+    return fail(PHONE_ERROR, 400);
+  }
+  const businessPhone = sanitizeText(body.businessPhone, 20).replace(/[\s\-()]/g, "").trim();
+  if (businessPhone && !isValidIndianPhone(businessPhone)) {
+    return fail(PHONE_ERROR, 400);
+  }
+
   const designation = DESIGNATIONS.includes(body.designation) ? body.designation : "";
   const businessType = BUSINESS_TYPES.includes(body.businessType) ? body.businessType : "";
   const category = CATEGORIES.includes(body.category) ? body.category : "";
@@ -36,7 +46,7 @@ export const PUT = withErrorHandling(async (request) => {
   const profileData = {
     ownerName: sanitizeText(body.ownerName, 120),
     fullName: sanitizeText(body.fullName, 120),
-    phone: sanitizeText(body.phone, 20),
+    phone,
     email: sanitizeText(body.email, 120),
     designation,
     avatar: sanitizeText(body.avatar, 500),
@@ -54,7 +64,7 @@ export const PUT = withErrorHandling(async (request) => {
     officeAddress: sanitizeText(body.officeAddress, 500),
     website: sanitizeText(body.website, 200),
     businessEmail: sanitizeText(body.businessEmail, 120),
-    businessPhone: sanitizeText(body.businessPhone, 20),
+    businessPhone,
     yearEstablished: sanitizeText(body.yearEstablished, 12),
 
     yearsOfExperience: Math.max(0, Number(body.yearsOfExperience) || 0),

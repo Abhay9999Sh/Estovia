@@ -4,6 +4,7 @@ import User from "@/lib/models/User";
 import LandownerProfile from "@/lib/models/LandownerProfile";
 import { ok, fail, sanitizeText } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
+import { isValidIndianPhone, PHONE_ERROR } from "@/lib/phone";
 
 export const GET = withErrorHandling(async (request) => {
   const user = await requireAuth();
@@ -16,6 +17,11 @@ export const PUT = withErrorHandling(async (request) => {
   const user = await requireAuth();
   const body = await request.json();
   await connectDB();
+
+  const phone = sanitizeText(body.phone, 20).replace(/[\s\-()]/g, "").trim();
+  if (phone && !isValidIndianPhone(phone)) {
+    return fail(PHONE_ERROR, 400);
+  }
 
   const allowedOwnershipTypes = ["individual", "joint", "company", "trust"];
 
@@ -40,7 +46,7 @@ export const PUT = withErrorHandling(async (request) => {
 
   const profileData = {
     fullName: sanitizeText(body.fullName, 120),
-    phone: sanitizeText(body.phone, 20),
+    phone,
     email: sanitizeText(body.email, 120),
     dob: body.dob ? new Date(body.dob) : null,
     address: sanitizeText(body.address, 400),

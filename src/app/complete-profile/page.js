@@ -35,7 +35,6 @@ const ROLES = [
     title: "Buyer",
     desc: "Discover verified properties.",
     cta: "Start as a Buyer",
-    comingSoon: true,
   },
   {
     id: "supplier",
@@ -43,7 +42,6 @@ const ROLES = [
     title: "Supplier",
     desc: "Showcase materials & services.",
     cta: "Start as a Supplier",
-    comingSoon: true,
   },
 ];
 
@@ -70,6 +68,10 @@ function CompleteProfile() {
       router.push("/landowner/onboarding");
     } else if (role.id === "builder") {
       router.push("/builder/onboarding");
+    } else if (role.id === "buyer") {
+      router.push("/buyer/onboarding");
+    } else if (role.id === "supplier") {
+      router.push("/supplier/onboarding");
     } else {
       router.push("/account?role=" + role.id);
     }
@@ -115,11 +117,6 @@ function CompleteProfile() {
               <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
                 {role.cta}
               </span>
-              {role.comingSoon && (
-                <span className="absolute top-5 right-5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-muted">
-                  Coming soon
-                </span>
-              )}
             </button>
           ))}
         </div>

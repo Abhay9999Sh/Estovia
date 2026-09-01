@@ -9,6 +9,7 @@ import { ok, fail, sanitizeText, validateRequired } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { findOrCreateConversation } from "@/lib/dialog";
+import { isValidIndianPhone, PHONE_ERROR } from "@/lib/phone";
 
 const TYPES = ["Project Inquiry", "Unit Inquiry", "General", "Finance", "Site Visit", "Other"];
 
@@ -28,6 +29,11 @@ export const POST = withErrorHandling(async (request) => {
   const user = await requireAuth();
   const body = await request.json();
   await connectDB();
+
+  const contactPhone = sanitizeText(body.contact?.phone, 20).replace(/[\s\-()]/g, "").trim();
+  if (contactPhone && !isValidIndianPhone(contactPhone)) {
+    return fail(PHONE_ERROR, 400);
+  }
 
   const missing = validateRequired(body, ["builderId"]);
   if (missing) return fail(`${missing} is required.`);
@@ -65,7 +71,7 @@ export const POST = withErrorHandling(async (request) => {
     message: sanitizeText(body.message, 2000),
     contact: {
       name: sanitizeText(body.contact?.name, 120) || user.name || "",
-      phone: sanitizeText(body.contact?.phone, 20),
+      phone: contactPhone,
       email: sanitizeText(body.contact?.email, 120),
     },
     status: "New",

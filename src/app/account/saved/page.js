@@ -16,7 +16,7 @@ export default function SavedPage() {
 function SavedContent() {
   const { isLoggedIn } = useAuth();
   return (
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 pt-24 pb-12 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Saved</h1>
         <p className="mt-2 text-muted">
           Properties and land you have bookmarked for later.

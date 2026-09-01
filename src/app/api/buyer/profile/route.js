@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import BuyerProfile from "@/lib/models/BuyerProfile";
 import { ok, fail, sanitizeText } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
+import { isValidIndianPhone, PHONE_ERROR } from "@/lib/phone";
 
 const BUYER_TYPES = ["Individual", "Family", "Developer", "Investor", "NRI", "Other", ""];
 
@@ -18,11 +19,16 @@ export const PUT = withErrorHandling(async (request) => {
   const body = await request.json();
   await connectDB();
 
+  const phone = sanitizeText(body.phone, 20).replace(/[\s\-()]/g, "").trim();
+  if (phone && !isValidIndianPhone(phone)) {
+    return fail(PHONE_ERROR, 400);
+  }
+
   const buyerType = BUYER_TYPES.includes(body.buyerType) ? body.buyerType : "";
 
   const profileData = {
     fullName: sanitizeText(body.fullName, 120),
-    phone: sanitizeText(body.phone, 20),
+    phone,
     email: sanitizeText(body.email, 120),
     avatar: sanitizeText(body.avatar, 500),
     about: sanitizeText(body.about, 2000),

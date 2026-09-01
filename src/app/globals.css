@@ -26,6 +26,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Stop fixed navbar (h ~64px) from covering scrolled-to hash targets. */
+  scroll-padding-top: 88px;
 }
 
 body {

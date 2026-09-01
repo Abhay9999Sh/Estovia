@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
+import MoneyInput from "@/components/ui/MoneyInput";
 import Skeleton from "@/components/ui/Skeleton";
 
 const PROJECT_TYPES = ["Residential", "Commercial", "Industrial", "Mixed Use", "Plotted Development", "Township", "Other"];
@@ -148,7 +149,7 @@ function NewProjectContent() {
             <Textarea label="Description" rows={4} value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Short description of the project..." />
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Input label="Estimated Budget (₹)" type="number" min="0" value={form.estimatedBudget} onChange={(e) => update("estimatedBudget", e.target.value)} />
+            <MoneyInput label="Estimated Budget" value={form.estimatedBudget} onChange={(v) => update("estimatedBudget", v)} />
             <Input label="Start Date" type="date" value={form.startDate} onChange={(e) => update("startDate", e.target.value)} />
             <Input label="Target Completion" type="date" value={form.completionDate} onChange={(e) => update("completionDate", e.target.value)} />
           </div>

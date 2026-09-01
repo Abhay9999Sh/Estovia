@@ -9,6 +9,7 @@ import { withErrorHandling } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 
 export const GET = withErrorHandling(async (request, ctx) => {
+  const user = await requireAuth();
   const { id } = await ctx.params;
   if (!mongoose.isValidObjectId(id)) return fail("Order not found.", 400);
   await connectDB();
@@ -18,6 +19,12 @@ export const GET = withErrorHandling(async (request, ctx) => {
     .populate("quotationId")
     .lean();
   if (!order) return fail("Order not found.", 404);
+  const profile = await SupplierProfile.findOne({ userId: user._id }).lean();
+  const isSupplier = profile && String(order.supplierProfileId) === String(profile._id);
+  const isBuilder = String(order.builderId) === String(user._id);
+  if (!isSupplier && !isBuilder) {
+    return fail("You are not authorized to view this order.", 403);
+  }
   return ok({ order });
 });
 

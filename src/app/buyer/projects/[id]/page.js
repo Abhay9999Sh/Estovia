@@ -24,8 +24,10 @@ import { Textarea } from "@/components/ui/Textarea";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import Skeleton from "@/components/ui/Skeleton";
+import MoneyInput from "@/components/ui/MoneyInput";
 import { formatDate, formatINR } from "@/lib/demoData";
 import { useAuth } from "@/context/AuthContext";
+import { isValidIndianPhone, PHONE_ERROR } from "@/lib/phone";
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -92,6 +94,11 @@ function ProjectDetail() {
   async function submitInquiry() {
     setSaving(true);
     setError("");
+    if (form.phone && !isValidIndianPhone(form.phone)) {
+      setError(PHONE_ERROR);
+      setSaving(false);
+      return;
+    }
     try {
       const res = await fetch("/api/buyer/inquiries", {
         method: "POST",
@@ -145,6 +152,11 @@ function ProjectDetail() {
     setError("");
     if (!selectedUnit) {
       setError("Please select a unit to apply for.");
+      setSaving(false);
+      return;
+    }
+    if (form.phone && !isValidIndianPhone(form.phone)) {
+      setError(PHONE_ERROR);
       setSaving(false);
       return;
     }
@@ -237,7 +249,7 @@ function ProjectDetail() {
                     <div>
                       <p className="font-bold text-foreground">Unit {u.unitNumber}</p>
                       <p className="text-xs text-muted">
-                        Type {u.unitType} · {u.sizeSqFt} sq.ft · {u.bedrooms} BHK · Floor {u.floor || "—"}
+                        Type {u.unitType} · {u.sizeSqFt} sq.ft · Floor {u.floor || "—"}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -299,7 +311,7 @@ function ProjectDetail() {
           <Textarea label="Message" rows={3} value={form.message || ""} onChange={(e) => setForm({ ...form, message: e.target.value })} />
           <div className="grid gap-3 sm:grid-cols-2">
             <Input label="Your name" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <Input label="Phone" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <Input label="Phone" type="tel" inputMode="numeric" maxLength={10} placeholder="10-digit mobile number" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} />
           </div>
           <Input label="Email" type="email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <Button onClick={submitInquiry} loading={saving} fullWidth>Send inquiry</Button>
@@ -331,7 +343,7 @@ function ProjectDetail() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input label="Email" type="email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <Input label="Phone" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <Input label="Phone" type="tel" inputMode="numeric" maxLength={10} placeholder="10-digit mobile number" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} />
           </div>
           <Textarea label="Address" rows={2} value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           <Select label="Financing" value={form.finance || "no"} onChange={(e) => setForm({ ...form, finance: e.target.value })}>
@@ -340,7 +352,7 @@ function ProjectDetail() {
           </Select>
           {form.finance === "yes" && (
             <div className="grid gap-3 sm:grid-cols-2">
-              <Input label="Loan amount (₹)" type="number" value={form.loanAmount || ""} onChange={(e) => setForm({ ...form, loanAmount: e.target.value })} />
+              <MoneyInput label="Loan amount" value={form.loanAmount || 0} onChange={(v) => setForm({ ...form, loanAmount: v })} hint="" />
               <Input label="Lender / mode" value={form.mode || ""} onChange={(e) => setForm({ ...form, mode: e.target.value })} placeholder="e.g. Bank, HFC" />
             </div>
           )}

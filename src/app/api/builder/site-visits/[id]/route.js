@@ -7,10 +7,14 @@ import { withErrorHandling } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 
 export const GET = withErrorHandling(async (request, ctx) => {
+  const user = await requireAuth();
   const { id } = await ctx.params;
   if (!mongoose.isValidObjectId(id)) return fail("Site visit not found.", 400);
   await connectDB();
-  const visit = await SiteVisit.findOne({ _id: id })
+  const visit = await SiteVisit.findOne({
+    _id: id,
+    $or: [{ builderId: user._id }, { buyerId: user._id }],
+  })
     .populate("buyerId", "name avatar phone")
     .populate("projectId", "name")
     .populate("unitId", "unitNumber unitType")

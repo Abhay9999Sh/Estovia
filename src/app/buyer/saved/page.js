@@ -33,7 +33,9 @@ function SavedContent() {
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    load();
+    (async () => {
+      await load();
+    })();
   }, [status, load]);
 
   async function unsave(item) {
@@ -49,7 +51,8 @@ function SavedContent() {
 
   function getLink(item) {
     if (item.entityType === "project") return `/buyer/projects/${item.entityId}`;
-    if (item.entityType === "unit") return `/buyer/projects/${item.entityRef}`;
+    if (item.entityType === "unit" && item.entity?.projectId) return `/buyer/projects/${item.entity.projectId}`;
+    if (item.entityType === "unit") return `/buyer/projects`;
     if (item.entityType === "land") return `/land/${item.entityId}`;
     return "#";
   }

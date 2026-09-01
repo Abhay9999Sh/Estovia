@@ -38,6 +38,15 @@ export async function requireAuth() {
     error.status = 401;
     throw error;
   }
+  if (user.accountStatus && user.accountStatus !== "active") {
+    const error = new Error(
+      user.accountStatus === "suspended"
+        ? "Your account has been suspended. Please contact support."
+        : "Your account has been deactivated. Please contact support."
+    );
+    error.status = 403;
+    throw error;
+  }
   return user;
 }
 

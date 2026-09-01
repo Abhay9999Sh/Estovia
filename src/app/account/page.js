@@ -19,6 +19,7 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/context/AuthContext";
+import { isValidIndianPhone, PHONE_ERROR } from "@/lib/phone";
 
 function AccountContent() {
   const { user, status, setUserData } = useAuth();
@@ -44,7 +45,7 @@ function AccountContent() {
 
   if (status === "loading" || !form) {
     return (
-      <div className="py-10 space-y-4">
+      <div className="px-4 pt-24 space-y-4">
         <Skeleton className="h-32" />
         <Skeleton className="h-10" />
         <Skeleton className="h-10" />
@@ -61,6 +62,12 @@ function AccountContent() {
     setSaving(true);
     setMessage("");
     setError("");
+    const phone = (form.phone || "").replace(/[\s\-()]/g, "");
+    if (phone && !isValidIndianPhone(phone)) {
+      setError(PHONE_ERROR);
+      setSaving(false);
+      return;
+    }
     try {
       const res = await fetch("/api/users/profile", {
         method: "PUT",
@@ -79,7 +86,7 @@ function AccountContent() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl px-4 pt-24 pb-12 sm:px-6 lg:px-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
@@ -131,8 +138,12 @@ function AccountContent() {
             </Field>
             <Field label="Phone">
               <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
                 value={form.phone}
-                onChange={(e) => update("phone", e.target.value)}
+                onChange={(e) => update("phone", e.target.value.replace(/\D/g, ""))}
+                placeholder="10-digit mobile number"
                 className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground focus:border-accent focus:outline-none"
               />
             </Field>

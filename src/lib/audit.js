@@ -1,26 +1,40 @@
 /**
- * Lightweight audit logging utility. Records important business actions so
- * there is an immutable trail of what happened and when, performed by whom.
- *
- * Currently logs to the server console with a structured entry. This keeps
- * the proposal/verification history honest without requiring a separate
- * collection. Swap the sink for a Mongo collection/event bus when needed.
+ * Audit logging utility. Records an immutable trail of what happened, when,
+ * and by whom. Entries are logged to the console AND persisted to the
+ * `auditlogs` collection so admins can review them. Persistence is
+ * best-effort and fire-and-forget: audit() never blocks or throws.
  */
 
-export function audit({ actor, entity, entityId, action, metadata = {} }) {
-  try {
-    const entry = {
-      ts: new Date().toISOString(),
-      actor: actor ? String(actor) : null,
-      entity,
-      entityId: entityId ? String(entityId) : null,
-      action,
-      metadata,
-    };
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[audit]", JSON.stringify(entry));
-    }
-  } catch (err) {
-    // audit must never throw
+export function audit({ actor, actorRole, entity, entityId, action, previousStatus, newStatus, reason, metadata = {} }) {
+  const entry = {
+    actorId: actor ? String(actor) : null,
+    actorRole: actorRole || "",
+    entity,
+    entityId: entityId ? String(entityId) : null,
+    action,
+    previousStatus: previousStatus || "",
+    newStatus: newStatus || "",
+    reason: reason || "",
+    metadata,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[audit]", JSON.stringify(entry));
   }
+
+  // Fire-and-forget persistence, never blocks the request or throws.
+  Promise.resolve()
+    .then(() => {
+      // Dynamic import keeps this module safe to use on the client and avoids
+      // a hard dependency whenever Mongo is not needed.
+      return import("@/lib/models/AuditLog");
+    })
+    .then(({ default: AuditLog }) => {
+      const { createdAt, ...rest } = entry;
+      return AuditLog.create({ ...rest, createdAt: new Date(createdAt) });
+    })
+    .catch(() => {
+      // audit must never throw
+    });
 }

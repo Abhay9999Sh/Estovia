@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import Stepper from "@/components/ui/Stepper";
+import MoneyInput from "@/components/ui/MoneyInput";
 import MapPicker from "@/components/maps/MapPicker";
 import LiveMap from "@/components/maps/LiveMap";
 import DocumentUploader from "@/components/verification/DocumentUploader";
@@ -463,26 +464,23 @@ export default function LandForm({ initialData, listingId, editing = false }) {
             </Select>
 
             {form.pricing.type !== "negotiable" && (
-              <div className="relative">
-                <Input
-                  label="Expected Price"
-                  type="number"
-                  min="0"
-                  value={form.pricing.amount}
-                  onChange={(e) => updatePricing({ amount: e.target.value })}
-                  placeholder="e.g. 24000000"
-                  required
-                  error={errors.amount}
-                />
-                <div className="mt-2 text-xs text-muted">
-                  {form.pricing.amount ? formatINR(Number(form.pricing.amount)) : "—"}
-                  {form.pricing.type === "per_sqft"
-                    ? " / sq.ft"
-                    : form.pricing.type === "per_acre"
-                    ? " / acre"
-                    : ""}
-                </div>
-              </div>
+              <MoneyInput
+                label="Expected Price"
+                value={form.pricing.amount}
+                onChange={(rupees) => updatePricing({ amount: rupees })}
+                error={errors.amount}
+                hint={
+                  form.pricing.amount > 0
+                    ? `Displayed as ${formatINR(Number(form.pricing.amount))}${
+                        form.pricing.type === "per_sqft"
+                          ? " / sq.ft"
+                          : form.pricing.type === "per_acre"
+                          ? " / acre"
+                          : ""
+                      }`
+                    : undefined
+                }
+              />
             )}
 
             {form.pricing.type === "negotiable" && (

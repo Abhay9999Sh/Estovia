@@ -39,7 +39,7 @@ function BuilderProfileContent() {
   }, [id]);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-5xl px-4 pt-24 pb-12 sm:px-6">
       <button
         onClick={() => router.back()}
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-accent"

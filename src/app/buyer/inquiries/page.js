@@ -43,7 +43,9 @@ function InquiriesContent() {
   }, []);
 
   useEffect(() => {
-    load();
+    (async () => {
+      await load();
+    })();
   }, [load]);
 
   const filtered = tab === "all" ? (inquiries || []) : (inquiries || []).filter((i) => i.status === tab);

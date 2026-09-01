@@ -7,6 +7,7 @@ import { ok, fail, sanitizeText } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
 
 export const GET = withErrorHandling(async (request, ctx) => {
+  const user = await requireAuth();
   const { id } = await ctx.params;
   if (!mongoose.isValidObjectId(id)) return fail("Application not found.", 400);
   await connectDB();
@@ -15,6 +16,11 @@ export const GET = withErrorHandling(async (request, ctx) => {
     .populate("unitId", "unitNumber unitType tower floor price sizeSqFt")
     .lean();
   if (!application) return fail("Application not found.", 404);
+  const isBuyer = String(application.buyerId) === String(user._id);
+  const isBuilder = String(application.builderId) === String(user._id);
+  if (!isBuyer && !isBuilder) {
+    return fail("You are not authorized to view this application.", 403);
+  }
   return ok({ application });
 });
 

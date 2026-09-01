@@ -122,14 +122,24 @@ const conversationSchema = new mongoose.Schema(
 );
 
 // Preserve backward-compatible uniqueness for the landowner-builder flow.
+// Partial on a real landId (ObjectId) so builder<->buyer and
+// builder<->supplier conversations (landId null) never collide.
 conversationSchema.index(
   { builderId: 1, landownerId: 1, landId: 1 },
-  { unique: true, sparse: true }
+  { unique: true, partialFilterExpression: { landId: { $type: "objectId" } } }
 );
-// Generic idempotency for the generalized participant pair.
+// Generic idempotency for the generalized participant pair. Particles must
+// be real ObjectIds so legacy (landowner-builder) docs with null
+// participantA/participantB are excluded.
 conversationSchema.index(
   { context: 1, participantA: 1, participantB: 1 },
-  { unique: true, sparse: true }
+  {
+    unique: true,
+    partialFilterExpression: {
+      participantA: { $type: "objectId" },
+      participantB: { $type: "objectId" },
+    },
+  }
 );
 conversationSchema.index({ participantA: 1 });
 conversationSchema.index({ participantB: 1 });

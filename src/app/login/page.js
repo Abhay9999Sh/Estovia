@@ -110,7 +110,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <AuthShell>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen lg:h-screen lg:overflow-hidden">
         {/* Left panel - visual */}
         <div className="relative hidden w-1/2 lg:block">
           <div
@@ -137,7 +137,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right panel - form */}
-        <div className="flex w-full items-center justify-center bg-secondary px-4 py-12 sm:px-8 lg:w-1/2">
+        <div className="flex w-full items-center justify-center bg-secondary px-4 py-12 sm:px-8 lg:w-1/2 lg:overflow-y-auto lg:py-8">
           <LoginForm />
         </div>
       </div>

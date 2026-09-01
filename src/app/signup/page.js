@@ -192,7 +192,7 @@ function SignupForm() {
 export default function SignupPage() {
   return (
     <AuthShell>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen lg:h-screen lg:overflow-hidden">
         <div className="relative hidden w-1/2 lg:block">
           <div
             className="absolute inset-0 bg-cover bg-center"
@@ -217,7 +217,7 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <div className="flex w-full items-center justify-center bg-secondary px-4 py-12 sm:px-8 lg:w-1/2">
+        <div className="flex w-full items-center justify-center bg-secondary px-4 py-12 sm:px-8 lg:w-1/2 lg:overflow-y-auto lg:py-8">
           <SignupForm />
         </div>
       </div>

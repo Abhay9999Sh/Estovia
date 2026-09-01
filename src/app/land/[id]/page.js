@@ -41,6 +41,8 @@ function DetailContent() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [interestMsg, setInterestMsg] = useState("");
+  const [interestSent, setInterestSent] = useState(false);
+  const [interestTone, setInterestTone] = useState("info"); // info | success | danger
 
   useEffect(() => {
     let active = true;
@@ -99,7 +101,19 @@ function DetailContent() {
       router.push("/login?next=" + encodeURIComponent(`/land/${id}`));
       return;
     }
+    const needsProfile =
+      interestType === "builder" ? !user?.roles?.includes("builder") : !user?.roles?.includes("buyer");
+    if (needsProfile) {
+      setInterestTone("warning");
+      setInterestMsg(
+        interestType === "builder"
+          ? "Complete your builder profile before expressing interest so the landowner can review your credentials."
+          : "Complete your buyer profile before expressing interest so the landowner can review your credentials."
+      );
+      return;
+    }
     setSending(true);
+    setInterestMsg("");
     try {
       const res = await fetch("/api/interests", {
         method: "POST",
@@ -107,10 +121,18 @@ function DetailContent() {
         body: JSON.stringify({ landId: id, type: interestType, message }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setInterestOpen(false);
-      setInterestMsg("Your interest has been recorded.");
+      if (!res.ok) {
+        setInterestTone("danger");
+        setInterestMsg(data.error || "Something went wrong. Please try again.");
+        setSending(false);
+        return;
+      }
+      setInterestSent(true);
+      setInterestTone("success");
+      setInterestMsg("Interest sent successfully! The landowner will be notified.");
+      setSending(false);
     } catch (err) {
+      setInterestTone("danger");
       setInterestMsg(err.message || "Something went wrong. Please try again.");
       setSending(false);
     }
@@ -266,9 +288,15 @@ function DetailContent() {
                 <Lock className="h-3.5 w-3.5" /> Your identity is kept private until the owner responds.
               </p>
             </div>
-            <Button fullWidth className="mt-4" onClick={() => setInterestOpen(true)}>
-              <Send className="h-4 w-4" /> Express Interest
-            </Button>
+            {interestSent ? (
+              <Button fullWidth className="mt-4" variant="secondary" disabled>
+                <CheckCircle2 className="h-4 w-4" /> Interest Sent
+              </Button>
+            ) : (
+              <Button fullWidth className="mt-4" onClick={() => setInterestOpen(true)}>
+                <Send className="h-4 w-4" /> Express Interest
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -301,7 +329,17 @@ function DetailContent() {
           </Button>
           {interestMsg &&
             (sending ? null : (
-              <div className="rounded-xl border px-4 py-3 text-sm text-foreground">
+              <div
+                className={`rounded-xl border px-4 py-3 text-sm ${
+                  interestTone === "success"
+                    ? "border-green-200 bg-green-50 text-green-700"
+                    : interestTone === "danger"
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : interestTone === "warning"
+                    ? "border-amber-200 bg-amber-50 text-amber-700"
+                    : "border-border bg-muted/40 text-foreground"
+                }`}
+              >
                 {interestMsg}
               </div>
             ))}

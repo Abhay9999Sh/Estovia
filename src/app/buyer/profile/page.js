@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
+import MoneyInput from "@/components/ui/MoneyInput";
 import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/context/AuthContext";
 
@@ -113,7 +114,7 @@ function ProfileContent() {
         <h3 className="font-bold text-foreground">Personal Information</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input label="Full Name" value={form.fullName || ""} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-          <Input label="Phone" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <Input label="Phone" type="tel" inputMode="numeric" maxLength={10} placeholder="10-digit mobile number" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} />
         </div>
         <Input label="Email" type="email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -132,8 +133,8 @@ function ProfileContent() {
         <h3 className="font-bold text-foreground">Preferences</h3>
         <Input label="Property Types" value={form.preferences?.propertyTypes || ""} onChange={(e) => setForm({ ...form, preferences: { ...form.preferences, propertyTypes: e.target.value } })} placeholder="e.g. Apartment, Villa" hint="Comma-separated" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Min Budget (₹)" type="number" value={form.preferences?.budgetMin || ""} onChange={(e) => setForm({ ...form, preferences: { ...form.preferences, budgetMin: e.target.value } })} />
-          <Input label="Max Budget (₹)" type="number" value={form.preferences?.budgetMax || ""} onChange={(e) => setForm({ ...form, preferences: { ...form.preferences, budgetMax: e.target.value } })} />
+          <MoneyInput label="Min Budget" value={form.preferences?.budgetMin || 0} onChange={(v) => setForm({ ...form, preferences: { ...form.preferences, budgetMin: v } })} hint="" />
+          <MoneyInput label="Max Budget" value={form.preferences?.budgetMax || 0} onChange={(v) => setForm({ ...form, preferences: { ...form.preferences, budgetMax: v } })} hint="" />
         </div>
         <Input label="Preferred Locations" value={form.preferences?.locations || ""} onChange={(e) => setForm({ ...form, preferences: { ...form.preferences, locations: e.target.value } })} placeholder="e.g. Mumbai, Pune" hint="Comma-separated" />
         <Input label="Possession Timeline" value={form.preferences?.possessionTimeline || ""} onChange={(e) => setForm({ ...form, preferences: { ...form.preferences, possessionTimeline: e.target.value } })} placeholder="e.g. Within 1 year" />

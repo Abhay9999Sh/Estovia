@@ -44,7 +44,9 @@ function SiteVisitsContent() {
   }, []);
 
   useEffect(() => {
-    load();
+    (async () => {
+      await load();
+    })();
   }, [load]);
 
   const filtered = tab === "all" ? (visits || []) : (visits || []).filter((v) => v.status === tab);

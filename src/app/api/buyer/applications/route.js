@@ -9,6 +9,7 @@ import { ok, fail, sanitizeText, validateRequired } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 import { findOrCreateConversation } from "@/lib/dialog";
+import { isValidIndianPhone, PHONE_ERROR } from "@/lib/phone";
 
 export const GET = withErrorHandling(async (request) => {
   const user = await requireAuth();
@@ -36,6 +37,11 @@ export const POST = withErrorHandling(async (request) => {
 
   const project = await Project.findById(body.projectId);
   if (!project) return fail("Project not found.", 404);
+
+  const buyerPhone = sanitizeText(body.buyerDetails?.phone, 20).replace(/[\s\-()]/g, "").trim();
+  if (buyerPhone && !isValidIndianPhone(buyerPhone)) {
+    return fail(PHONE_ERROR, 400);
+  }
 
   const buyerProfile = await BuyerProfile.findOne({ userId: user._id }).lean();
 
@@ -71,7 +77,7 @@ export const POST = withErrorHandling(async (request) => {
       name: sanitizeText(body.buyerDetails?.name, 120) || buyerProfile?.fullName || user.name || "",
       pan: sanitizeText(body.buyerDetails?.pan, 20).toUpperCase(),
       email: sanitizeText(body.buyerDetails?.email, 120),
-      phone: sanitizeText(body.buyerDetails?.phone, 20),
+      phone: buyerPhone,
       address: sanitizeText(body.buyerDetails?.address, 500),
       coApplicants: Array.isArray(body.buyerDetails?.coApplicants)
         ? body.buyerDetails.coApplicants.map((s) => sanitizeText(s, 120)).filter(Boolean)

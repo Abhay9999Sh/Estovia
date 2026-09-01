@@ -8,6 +8,7 @@ import { withErrorHandling } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
 
 export const GET = withErrorHandling(async (request, ctx) => {
+  const user = await requireAuth();
   const { id } = await ctx.params;
   if (!mongoose.isValidObjectId(id)) return fail("Quotation not found.", 400);
   await connectDB();
@@ -17,6 +18,12 @@ export const GET = withErrorHandling(async (request, ctx) => {
     .populate("projectId", "name")
     .lean();
   if (!quotation) return fail("Quotation not found.", 404);
+  const profile = await SupplierProfile.findOne({ userId: user._id }).lean();
+  const isBuilder = quotation.builderId && String(quotation.builderId) === String(user._id);
+  const isSupplier = profile && quotation.supplierProfileId && String(quotation.supplierProfileId._id) === String(profile._id);
+  if (!isBuilder && !isSupplier) {
+    return fail("You are not authorized to view this quotation.", 403);
+  }
   return ok({ quotation });
 });
 

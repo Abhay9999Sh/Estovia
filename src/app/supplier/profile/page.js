@@ -118,7 +118,7 @@ function ProfileContent() {
           <Input label="Full Name" value={form.fullName || ""} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Phone" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <Input label="Phone" type="tel" inputMode="numeric" maxLength={10} placeholder="10-digit mobile number" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })} />
           <Input label="Email" type="email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         </div>
         <Select label="Designation" value={form.designation || ""} onChange={(e) => setForm({ ...form, designation: e.target.value })}>
@@ -150,7 +150,7 @@ function ProfileContent() {
         <div className="grid gap-4 sm:grid-cols-3">
           <Input label="Website" value={form.website || ""} onChange={(e) => setForm({ ...form, website: e.target.value })} />
           <Input label="Business Email" type="email" value={form.businessEmail || ""} onChange={(e) => setForm({ ...form, businessEmail: e.target.value })} />
-          <Input label="Business Phone" value={form.businessPhone || ""} onChange={(e) => setForm({ ...form, businessPhone: e.target.value })} />
+          <Input label="Business Phone" type="tel" inputMode="numeric" maxLength={10} placeholder="10-digit mobile number" value={form.businessPhone || ""} onChange={(e) => setForm({ ...form, businessPhone: e.target.value.replace(/\D/g, "") })} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input label="Year Established" type="number" value={form.yearEstablished || ""} onChange={(e) => setForm({ ...form, yearEstablished: e.target.value })} />

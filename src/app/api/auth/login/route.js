@@ -30,6 +30,13 @@ export async function POST(request) {
       return fail("Invalid email/username or password.", 401);
     }
 
+    if (user.accountStatus === "suspended") {
+      return fail("Your account has been suspended. Please contact support.", 403);
+    }
+    if (user.accountStatus === "deactivated") {
+      return fail("Your account has been deactivated. Please contact support.", 403);
+    }
+
     const token = await createSessionToken(user._id);
 
     const { passwordHash: _ph, ...safeUser } = user.toObject();

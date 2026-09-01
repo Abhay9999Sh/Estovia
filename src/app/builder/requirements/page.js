@@ -75,7 +75,9 @@ function RequirementsContent() {
   }, []);
 
   useEffect(() => {
-    load();
+    (async () => {
+      await load();
+    })();
   }, [load]);
 
   function setField(key, value) {

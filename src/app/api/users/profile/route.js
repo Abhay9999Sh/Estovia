@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/lib/models/User";
 import { ok, fail, sanitizeText } from "@/lib/api";
+import { isValidIndianPhone, PHONE_ERROR } from "@/lib/phone";
 
 export async function GET() {
   return fail("Not supported.", 405);
@@ -15,7 +16,13 @@ export async function PUT(request) {
 
     const update = {};
     if (body.name !== undefined) update.name = sanitizeText(body.name, 80);
-    if (body.phone !== undefined) update.phone = sanitizeText(body.phone, 20);
+    if (body.phone !== undefined) {
+      const phone = sanitizeText(body.phone, 20).replace(/[\s\-()]/g, "").trim();
+      if (phone && !isValidIndianPhone(phone)) {
+        return fail(PHONE_ERROR, 400);
+      }
+      update.phone = phone;
+    }
     if (body.address !== undefined) update.address = sanitizeText(body.address, 400);
     if (body.avatar !== undefined) update.avatar = sanitizeText(body.avatar, 500);
     if (body.dob !== undefined) update.dob = body.dob ? new Date(body.dob) : null;

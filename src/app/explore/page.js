@@ -20,17 +20,30 @@ const PROPERTY_TYPES = [
 
 function ExploreContent() {
   const searchParams = useSearchParams();
-  const initialType = searchParams.get("type") || "";
-  const initialQ = searchParams.get("q") || "";
-  const initialLocation = searchParams.get("location") || "";
+  const urlType = searchParams.get("type") || searchParams.get("propertyType") || "";
+  const urlQ = searchParams.get("q") || "";
+  const urlLocation = searchParams.get("location") || "";
+  const urlVerified = searchParams.get("verifiedOnly") === "true";
 
-  const [type, setType] = useState(initialType);
-  const [q, setQ] = useState(initialQ);
-  const [location, setLocation] = useState(initialLocation);
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [type, setType] = useState(urlType);
+  const [q, setQ] = useState(urlQ);
+  const [location, setLocation] = useState(urlLocation);
+  const [verifiedOnly, setVerifiedOnly] = useState(urlVerified);
   const [listings, setListings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Track the URL key so we can keep the filter state in sync when the URL
+  // changes while the component stays mounted (adjust state during render).
+  const urlKey = `${urlType}|${urlQ}|${urlLocation}|${urlVerified}`;
+  const [lastUrlKey, setLastUrlKey] = useState(urlKey);
+  if (lastUrlKey !== urlKey) {
+    setLastUrlKey(urlKey);
+    setType(urlType);
+    setQ(urlQ);
+    setLocation(urlLocation);
+    setVerifiedOnly(urlVerified);
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -52,10 +65,33 @@ function ExploreContent() {
     }
   }, [q, location, type, verifiedOnly]);
 
+  // Fetch fresh results when the URL's search params change (e.g. clicking a
+  // Navbar/Footer item like "Properties"/"Land"). The component stays mounted
+  // across same-pathname query navigations, so without this it would stay stuck
+  // on the previous filters until the user leaves and returns.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    load();
-  }, [load]);
+    const params = new URLSearchParams();
+    if (urlQ) params.set("q", urlQ);
+    if (urlLocation) params.set("location", urlLocation);
+    if (urlType) params.set("propertyType", urlType);
+    if (urlVerified) params.set("verifiedOnly", "true");
+    params.set("limit", "12");
+    let active = true;
+    (async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`/api/land?${params.toString()}`, { cache: "no-store" });
+        const data = await res.json();
+        if (active && data.listings) setListings(data.listings);
+      } catch (err) {
+        if (active) setError("Something went wrong. Please try again.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [urlType, urlQ, urlLocation, urlVerified]);
 
   function applyFilters(e) {
     e?.preventDefault();

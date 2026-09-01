@@ -100,8 +100,11 @@ function ProfileContent() {
           <Input
             label="Phone"
             type="tel"
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="10-digit mobile number"
             value={form.phone}
-            onChange={(e) => update("phone", e.target.value)}
+            onChange={(e) => update("phone", e.target.value.replace(/\D/g, ""))}
           />
           <Input
             label="Profile Photo URL"
