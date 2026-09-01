@@ -38,7 +38,7 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-function UserMenu({ user, onLogout, onClose }) {
+function UserMenu({ user, onLogout, onClose, overHero }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const isLandowner = user?.roles?.includes?.("landowner");
@@ -79,7 +79,9 @@ function UserMenu({ user, onLogout, onClose }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-xl p-1 pr-2 hover:bg-white/10 transition-colors"
+        className={`flex items-center gap-2 rounded-xl p-1 pr-2 transition-colors ${
+          overHero ? "text-white hover:bg-white/10" : "text-foreground hover:bg-secondary"
+        }`}
         aria-haspopup="menu"
         aria-expanded={open}
       >
@@ -95,11 +97,11 @@ function UserMenu({ user, onLogout, onClose }) {
             getInitials(user?.name)
           )}
         </span>
-        <span className="hidden sm:block text-sm font-medium text-white">
+        <span className="hidden sm:block text-sm font-medium">
           {user?.name?.split(" ")[0]}
         </span>
         <ChevronDown
-          className={`h-4 w-4 text-white transition-transform ${
+          className={`h-4 w-4 opacity-80 transition-transform ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -213,7 +215,12 @@ export default function Navbar() {
 
         <div className="flex items-center gap-2">
           {isLoggedIn ? (
-            <UserMenu user={user} onLogout={handleLogout} onClose={() => setMobileOpen(false)} />
+            <UserMenu
+              user={user}
+              onLogout={handleLogout}
+              onClose={() => setMobileOpen(false)}
+              overHero={overHero}
+            />
           ) : (
             <>
               <Link
@@ -250,8 +257,8 @@ export default function Navbar() {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 top-[64px] z-[949] bg-white">
-          <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-1 overflow-y-auto h-full">
+        <div className="lg:hidden absolute inset-x-0 top-full z-[949] bg-white border-t border-border shadow-xl">
+          <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-1 overflow-y-auto max-h-[calc(100dvh-72px)]">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
