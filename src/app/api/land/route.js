@@ -3,7 +3,6 @@ import LandListing from "@/lib/models/LandListing";
 import User from "@/lib/models/User";
 import { ok } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
-import { DEMO_LAND_LISTINGS } from "@/lib/demoData";
 
 /**
  * Public land listing discovery. Only returns safe, publicly visible info.
@@ -70,11 +69,6 @@ export const GET = withErrorHandling(async (request) => {
       ? { name: ownerMap[l.ownerId].name, avatar: ownerMap[l.ownerId].avatar }
       : null,
   }));
-
-  // Fallback to demo data when database has no active listings
-  if (listings.length === 0) {
-    return ok({ listings: DEMO_LAND_LISTINGS, source: "demo" });
-  }
 
   return ok({ listings, source: "db" });
 });

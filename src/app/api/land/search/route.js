@@ -3,7 +3,6 @@ import LandListing from "@/lib/models/LandListing";
 import User from "@/lib/models/User";
 import { ok } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
-import { DEMO_LAND_LISTINGS } from "@/lib/demoData";
 
 export const GET = withErrorHandling(async (request) => {
   const { searchParams } = request.nextUrl;
@@ -61,7 +60,7 @@ export const GET = withErrorHandling(async (request) => {
     .lean();
 
   if (dbListings.length === 0) {
-    return ok({ listings: DEMO_LAND_LISTINGS, source: "demo" });
+    return ok({ listings: [], source: "db" });
   }
 
   const ownerIds = [...new Set(dbListings.map((l) => l.ownerId).filter(Boolean))];

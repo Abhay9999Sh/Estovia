@@ -5,18 +5,9 @@ import User from "@/lib/models/User";
 import { ok, fail } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
-import { DEMO_LAND_LISTINGS } from "@/lib/demoData";
 
 export const GET = withErrorHandling(async (request, ctx) => {
   const { id } = await ctx.params;
-
-  // Demo fallback listings are not stored in Mongo. Resolve them so
-  // featured/homepage demo cards are not dead links.
-  if (String(id).startsWith("demo-")) {
-    const demo = DEMO_LAND_LISTINGS.find((d) => d._id === id);
-    if (demo) return ok({ listing: demo, source: "demo" });
-    return fail("Listing not found.", 404);
-  }
 
   if (!mongoose.isValidObjectId(id)) {
     return fail("Listing not found.", 404);

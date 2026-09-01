@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   User as UserIcon,
   Check,
@@ -9,6 +9,7 @@ import {
   Loader2,
   MessageSquare,
   HardHat,
+  ExternalLink,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import AuthShell from "@/components/auth/AuthShell";
@@ -19,6 +20,7 @@ import { formatDate } from "@/lib/demoData";
 
 function InterestsContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const type = searchParams.get("type") === "builder" ? "builder" : "buyer";
   const [interests, setInterests] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -132,6 +134,15 @@ function InterestsContent() {
               </div>
 
               <div className="flex items-center gap-2 md:flex-shrink-0">
+                {type === "builder" && i.interestedUserRef?._id && (
+                  <button
+                    onClick={() => router.push(`/builder/${i.interestedUserRef._id}`)}
+                    className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border px-4 text-sm font-semibold text-muted hover:border-accent hover:text-accent"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View Builder
+                  </button>
+                )}
                 {i.status === "pending" ? (
                   <>
                     <button

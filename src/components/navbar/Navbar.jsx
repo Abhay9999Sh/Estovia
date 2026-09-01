@@ -42,6 +42,8 @@ function UserMenu({ user, onLogout, onClose }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const isLandowner = user?.roles?.includes?.("landowner");
+  const isBuilder = user?.roles?.includes?.("builder");
+  const hasRole = isLandowner || isBuilder;
 
   useEffect(() => {
     function onClick(e) {
@@ -57,7 +59,12 @@ function UserMenu({ user, onLogout, onClose }) {
       href: "/landowner/dashboard",
       icon: LayoutDashboard,
     },
-    !isLandowner && {
+    isBuilder && {
+      label: "Builder Dashboard",
+      href: "/builder/dashboard",
+      icon: LayoutDashboard,
+    },
+    !hasRole && {
       label: "Complete Profile",
       href: "/complete-profile",
       icon: Compass,

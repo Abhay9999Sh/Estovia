@@ -18,6 +18,7 @@ import {
   X,
   LogOut,
   ChevronRight,
+  Bell,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useAuth } from "@/context/AuthContext";
@@ -29,6 +30,7 @@ const NAV = [
   { label: "Add Land", href: "/landowner/land/new", icon: PlusSquare },
   { label: "Interested Buyers", href: "/landowner/interests?type=buyer", icon: Users },
   { label: "Builder Requests", href: "/landowner/interests?type=builder", icon: HardHat },
+  { label: "Proposals", href: "/landowner/proposals", icon: FileText },
   { label: "Messages", href: "/landowner/messages", icon: MessageSquare },
   { label: "Documents", href: "/landowner/documents", icon: FileText },
   { label: "Verification", href: "/landowner/verification", icon: ShieldCheck },
@@ -40,6 +42,9 @@ export default function DashboardShell({ children, title, subtitle }) {
   const router = useRouter();
   const { user, status, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState({ notifications: [], unread: 0 });
+  const [bellLoading, setBellLoading] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/login");
@@ -49,6 +54,45 @@ export default function DashboardShell({ children, title, subtitle }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSidebarOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    let active = true;
+    async function loadNotifs() {
+      try {
+        const res = await fetch("/api/notifications?limit=20", { cache: "no-store" });
+        const data = await res.json();
+        if (active) setNotifications({ notifications: data.notifications || [], unread: data.unread || 0 });
+      } catch (err) {
+        // ignore
+      }
+    }
+    loadNotifs();
+    const interval = setInterval(loadNotifs, 30000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [status, pathname]);
+
+  const markAllRead = async () => {
+    setBellLoading(true);
+    try {
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAll: true }),
+      });
+      setNotifications((p) => ({
+        notifications: p.notifications.map((n) => ({ ...n, read: true })),
+        unread: 0,
+      }));
+    } catch (err) {
+      // ignore
+    } finally {
+      setBellLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -149,6 +193,59 @@ export default function DashboardShell({ children, title, subtitle }) {
               {title || "Landowner Dashboard"}
             </h1>
             {subtitle && <p className="truncate text-xs text-muted">{subtitle}</p>}
+          </div>
+
+          {/* Notifications bell */}
+          <div className="relative ml-auto">
+            <button
+              onClick={() => setNotifOpen((o) => !o)}
+              className="relative rounded-lg p-2 text-muted hover:bg-secondary"
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              {notifications.unread > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
+                  {notifications.unread}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-border bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                  <p className="text-sm font-bold text-foreground">Notifications</p>
+                  {notifications.unread > 0 && (
+                    <button
+                      onClick={markAllRead}
+                      disabled={bellLoading}
+                      className="text-xs font-semibold text-accent hover:text-accent-soft disabled:opacity-60"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.notifications.length === 0 ? (
+                    <p className="px-4 py-8 text-center text-sm text-muted">
+                      No notifications yet
+                    </p>
+                  ) : (
+                    notifications.notifications.map((n) => (
+                      <Link
+                        key={n._id}
+                        href={n.link || "/landowner/dashboard"}
+                        className={`block border-b border-border px-4 py-3 transition-colors hover:bg-secondary ${
+                          !n.read ? "bg-accent-light/30" : ""
+                        }`}
+                      >
+                        <p className="text-sm font-semibold text-foreground">{n.title}</p>
+                        <p className="mt-0.5 line-clamp-2 text-xs text-muted">{n.message}</p>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </header>
 

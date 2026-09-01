@@ -28,7 +28,6 @@ const ROLES = [
     title: "Builder",
     desc: "Discover land and manage projects.",
     cta: "Start as a Builder",
-    comingSoon: true,
   },
   {
     id: "buyer",
@@ -69,6 +68,8 @@ function CompleteProfile() {
   function handleSelect(role) {
     if (role.id === "landowner") {
       router.push("/landowner/onboarding");
+    } else if (role.id === "builder") {
+      router.push("/builder/onboarding");
     } else {
       router.push("/account?role=" + role.id);
     }

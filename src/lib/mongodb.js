@@ -9,6 +9,15 @@ if (!MONGODB_URI) {
   );
 }
 
+// Bounded timeouts so API requests fail fast instead of hanging for the
+// driver default (~30s) when MongoDB is unreachable.
+const SERVER_SELECTION_TIMEOUT_MS = 5000;
+const CONNECT_TIMEOUT_MS = 10000;
+
+// After a failed attempt, short-circuit retries for a brief window so
+// concurrent requests don't each spawn a fresh 5s connection attempt.
+const RETRY_COOLDOWN_MS = 5000;
+
 /**
  * Global is used here to maintain a cached connection across hot reloads
  * in development. This prevents exhausting connections on each reload.
@@ -16,7 +25,7 @@ if (!MONGODB_URI) {
 let cached = global.mongoose;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  cached = global.mongoose = { conn: null, promise: null, lastFailureAt: 0, lastError: null };
 }
 
 export async function connectDB() {
@@ -24,10 +33,16 @@ export async function connectDB() {
     return cached.conn;
   }
 
+  if (cached.lastFailureAt && Date.now() - cached.lastFailureAt < RETRY_COOLDOWN_MS) {
+    throw cached.lastError || new Error("Database temporarily unavailable. Please try again shortly.");
+  }
+
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
       dbName: MONGODB_DB,
+      serverSelectionTimeoutMS: SERVER_SELECTION_TIMEOUT_MS,
+      connectTimeoutMS: CONNECT_TIMEOUT_MS,
     };
 
     cached.promise = mongoose
@@ -37,6 +52,8 @@ export async function connectDB() {
       })
       .catch((error) => {
         cached.promise = null;
+        cached.lastFailureAt = Date.now();
+        cached.lastError = error;
         throw error;
       });
   }
