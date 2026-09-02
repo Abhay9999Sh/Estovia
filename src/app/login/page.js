@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import AuthShell from "@/components/auth/AuthShell";
 import { useAuth } from "@/context/AuthContext";
+import { roleDestination } from "@/lib/navigation";
 
 function LoginForm() {
   const { login } = useAuth();
@@ -23,8 +24,8 @@ function LoginForm() {
     setError("");
     setLoading(true);
     try {
-      await login(identifier, password);
-      router.push("/");
+      const user = await login(identifier, password);
+      router.push(roleDestination(user));
       router.refresh();
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -79,15 +80,6 @@ function LoginForm() {
           placeholder="Your password"
           required
         />
-
-        <div className="flex items-center justify-end">
-          <Link
-            href="/forgot-password"
-            className="text-sm font-medium text-accent hover:text-accent-soft"
-          >
-            Forgot Password?
-          </Link>
-        </div>
 
         <Button type="submit" fullWidth loading={loading} size="lg">
           Log In

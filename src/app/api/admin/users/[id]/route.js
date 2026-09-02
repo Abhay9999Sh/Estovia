@@ -66,7 +66,7 @@ export const PATCH = withErrorHandling(async (request, ctx) => {
 
   const model = PROFILE_MODELS[body.role] || null;
 
-  const user = await User.findById(id);
+  const user = await User.findById(id).select("+passwordHash");
   if (!user) return fail("User not found.", 404);
   if (user.roles?.includes("admin") && String(user._id) !== String(admin._id)) {
     return fail("You cannot modify another admin account.", 403);
@@ -83,20 +83,17 @@ export const PATCH = withErrorHandling(async (request, ctx) => {
     if (user.accountStatus === "suspended") {
       return fail("Account is already suspended.", 400);
     }
-    user.accountStatus = "suspended";
-    await user.save();
+    await User.findByIdAndUpdate(id, { $set: { accountStatus: "suspended" } });
   } else if (body.action === "reactivate") {
     if (user.accountStatus === "active") {
       return fail("Account is already active.", 400);
     }
-    user.accountStatus = "active";
-    await user.save();
+    await User.findByIdAndUpdate(id, { $set: { accountStatus: "active" } });
   } else if (body.action === "deactivate") {
     if (user.accountStatus === "deactivated") {
       return fail("Account is already deactivated.", 400);
     }
-    user.accountStatus = "deactivated";
-    await user.save();
+    await User.findByIdAndUpdate(id, { $set: { accountStatus: "deactivated" } });
   } else if (body.action === "verify_profile") {
     if (!model) return fail("A role is required to verify a profile.", 400);
     const profile = await model.findOne({ userId: id });
@@ -106,8 +103,7 @@ export const PATCH = withErrorHandling(async (request, ctx) => {
     profile.reviewNotes = reason || profile.reviewNotes;
     await profile.save();
   } else if (body.action === "mark_profile_incomplete") {
-    user.profileCompleted = false;
-    await user.save();
+    await User.findByIdAndUpdate(id, { $set: { profileCompleted: false } });
   }
 
   audit({

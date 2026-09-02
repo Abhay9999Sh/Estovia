@@ -9,6 +9,7 @@ const PROTECTED_PREFIXES = [
   "/landowner",
   "/account",
   "/complete-profile",
+  "/admin",
 ];
 
 const PUBLIC_PATHS = [
@@ -17,12 +18,35 @@ const PUBLIC_PATHS = [
   "/signup",
   "/explore",
   "/land",
+  "/builders",
+  "/suppliers",
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/me",
   "/api/land",
   "/api/notifications",
+  "/api/builders",
+  "/api/suppliers",
 ];
+
+// Public single-profile detail routes (public browsing) — e.g. /builder/<id>
+// or /supplier/<id>, where <id> is a MongoDB ObjectId. Any named sub-route
+// (dashboard, onboarding, profile, ...) under the same prefixes stays protected.
+const OBJECT_ID = /^[0-9a-f]{24}$/i;
+
+function isPublicProfileDetail(pathname) {
+  if (pathname.startsWith("/api/builder/") || pathname.startsWith("/api/supplier/")) {
+    const rest = pathname.split("/").filter(Boolean);
+    // /api/builder/<id>  or  /api/supplier/<id>
+    return rest.length === 3 && OBJECT_ID.test(rest[2]);
+  }
+  if (pathname.startsWith("/builder/") || pathname.startsWith("/supplier/")) {
+    const rest = pathname.split("/").filter(Boolean);
+    // /builder/<id>  or  /supplier/<id>
+    return rest.length === 2 && OBJECT_ID.test(rest[1]);
+  }
+  return false;
+}
 
 export function proxy(request) {
   const { pathname } = request.nextUrl;
@@ -31,7 +55,8 @@ export function proxy(request) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname.includes(".") ||
-    PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
+    PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
+    isPublicProfileDetail(pathname)
   ) {
     return NextResponse.next();
   }

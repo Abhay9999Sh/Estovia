@@ -13,3 +13,26 @@ export function listLandTarget({ isLoggedIn, user }) {
   }
   return "/complete-profile";
 }
+
+/**
+ * Return the correct destination for a user after they successfully
+ * authenticate, based on their actual roles:
+ *
+ * - admin        -> Admin Dashboard (never complete-profile/onboarding)
+ * - landowner    -> Landowner Dashboard
+ * - builder      -> Builder Dashboard
+ * - supplier     -> Supplier Dashboard
+ * - buyer        -> Buyer Dashboard
+ * - viewer with profileCompleted -> home (browsing only)
+ * - viewer without profileCompleted -> complete-profile (choose a role)
+ */
+export function roleDestination(user) {
+  const roles = Array.isArray(user?.roles) ? user.roles : [];
+  if (roles.includes("admin")) return "/admin";
+  if (roles.includes("landowner")) return "/landowner/dashboard";
+  if (roles.includes("builder")) return "/builder/dashboard";
+  if (roles.includes("supplier")) return "/supplier/dashboard";
+  if (roles.includes("buyer")) return "/buyer/dashboard";
+  if (user?.profileCompleted) return "/";
+  return "/complete-profile";
+}

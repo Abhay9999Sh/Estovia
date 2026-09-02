@@ -23,8 +23,8 @@ const NAV_LINKS = [
   { label: "Explore", href: "/explore" },
   { label: "Properties", href: "/explore?type=residential" },
   { label: "Land", href: "/explore?type=land" },
-  { label: "Builders", href: "#roles" },
-  { label: "Suppliers", href: "#roles" },
+  { label: "Builders", href: "/builders" },
+  { label: "Suppliers", href: "/suppliers" },
   { label: "How It Works", href: "/#how-it-works" },
 ];
 
@@ -41,19 +41,13 @@ function getInitials(name) {
 function UserMenu({ user, onLogout, onClose, overHero }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const isAdmin = user?.roles?.includes?.("admin");
   const isLandowner = user?.roles?.includes?.("landowner");
   const isBuilder = user?.roles?.includes?.("builder");
-  const hasRole = isLandowner || isBuilder;
-
-  useEffect(() => {
-    function onClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
-
-  const items = [
+  const isSupplier = user?.roles?.includes?.("supplier");
+  const isBuyer = user?.roles?.includes?.("buyer");
+  const hasRole = isLandowner || isBuilder || isSupplier || isBuyer;
+  const roleItems = [
     isLandowner && {
       label: "Landowner Dashboard",
       href: "/landowner/dashboard",
@@ -64,7 +58,34 @@ function UserMenu({ user, onLogout, onClose, overHero }) {
       href: "/builder/dashboard",
       icon: LayoutDashboard,
     },
-    !hasRole && {
+    isSupplier && {
+      label: "Supplier Dashboard",
+      href: "/supplier/dashboard",
+      icon: LayoutDashboard,
+    },
+    isBuyer && {
+      label: "Buyer Dashboard",
+      href: "/buyer/dashboard",
+      icon: LayoutDashboard,
+    },
+  ].filter(Boolean);
+
+  useEffect(() => {
+    function onClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const items = [
+    isAdmin && {
+      label: "Admin Dashboard",
+      href: "/admin",
+      icon: LayoutDashboard,
+    },
+    ...roleItems,
+    !hasRole && !isAdmin && user?.profileCompleted === false && {
       label: "Complete Profile",
       href: "/complete-profile",
       icon: Compass,

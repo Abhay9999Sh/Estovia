@@ -33,7 +33,7 @@ export default function AdminSettingsPage() {
           <CardHeader title="Seed an admin account" action={<KeyRound className="h-5 w-5 text-accent" />} />
           <p className="text-sm text-muted">From the <code className="rounded bg-secondary px-1.5 py-0.5 text-xs">estovia/</code> directory run:</p>
           <pre className="mt-3 overflow-x-auto rounded-xl border border-border bg-secondary/60 p-4 text-xs text-foreground">
-            {`node scripts/create-admin.mjs --email admin@estovia.in --password changeme123 --name "Admin" --username admin`}
+            {`node scripts/create-admin.mjs --email admin@estovia.in --password admin123 --name "Admin" --username admin`}
           </pre>
           <p className="mt-3 text-xs text-muted">The script is idempotent — re-running it only updates the seed user rather than creating duplicates.</p>
         </Card>

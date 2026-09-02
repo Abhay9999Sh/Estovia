@@ -30,6 +30,12 @@ function AccountContent() {
   const [error, setError] = useState("");
 
   const isLandowner = user?.roles?.includes("landowner");
+  const isAdmin = user?.roles?.includes("admin");
+  const hasRole =
+    isLandowner ||
+    user?.roles?.includes("builder") ||
+    user?.roles?.includes("supplier") ||
+    user?.roles?.includes("buyer");
 
   useEffect(() => {
     if (user) {
@@ -110,7 +116,13 @@ function AccountContent() {
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <QuickLink href="/account/listings" icon={Map} label="My Listings" />
         <QuickLink href="/account/saved" icon={Bookmark} label="Saved" />
-        <QuickLink href="/complete-profile" icon={Compass} label="Complete Profile" />
+        {isAdmin ? (
+          <QuickLink href="/admin" icon={LayoutDashboard} label="Admin Dashboard" />
+        ) : (
+          !hasRole && (
+            <QuickLink href="/complete-profile" icon={Compass} label="Complete Profile" />
+          )
+        )}
         <QuickLink href="/account/settings" icon={Settings} label="Settings" />
       </div>
 

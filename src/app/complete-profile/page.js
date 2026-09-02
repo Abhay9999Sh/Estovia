@@ -13,6 +13,7 @@ import {
 import Logo from "@/components/Logo";
 import AuthShell from "@/components/auth/AuthShell";
 import { useAuth } from "@/context/AuthContext";
+import { roleDestination } from "@/lib/navigation";
 
 const ROLES = [
   {
@@ -52,8 +53,15 @@ function CompleteProfile() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login");
+      return;
     }
-  }, [status, router]);
+    if (status === "authenticated") {
+      const dest = roleDestination(user);
+      if (dest !== "/complete-profile") {
+        router.replace(dest);
+      }
+    }
+  }, [status, user, router]);
 
   if (status === "loading" || status === "unauthenticated") {
     return (
