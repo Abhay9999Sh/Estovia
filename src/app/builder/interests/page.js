@@ -74,9 +74,26 @@ function InterestsContent() {
     }
   }
 
-  function startConversation(i) {
+  async function startConversation(i) {
     // Open the message thread with this landowner for this land
-    router.push(`/builder/messages?land=${i.landId?._id}&owner=${i.landId?.ownerId}`);
+    if (!i.landId?._id || !i.landId?.ownerId) return;
+    setActionId(`start-${i._id}`);
+    setError("");
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipientId: i.landId.ownerId, landId: i.landId._id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Unable to start conversation.");
+      const convId = data.conversation?._id;
+      if (convId) router.push(`/builder/messages?conversation=${convId}`);
+    } catch (err) {
+      setError(err.message || "Unable to open conversation.");
+    } finally {
+      setActionId(null);
+    }
   }
 
   return (
@@ -146,7 +163,7 @@ function InterestsContent() {
                     View Land
                   </Button>
                   {i.status === "accepted" && (
-                    <Button size="sm" onClick={() => startConversation(i)}>
+                    <Button size="sm" onClick={() => startConversation(i)} loading={actionId === `start-${i._id}`}>
                       <Handshake className="h-4 w-4" /> Message
                     </Button>
                   )}

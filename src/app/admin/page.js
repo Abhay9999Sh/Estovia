@@ -20,6 +20,112 @@ import { useAdminFetch } from "@/components/admin/useAdminFetch";
 import { Card, AdminLoading, AdminError } from "@/components/admin/AdminStates";
 import StatusBadge from "@/components/admin/StatusBadge";
 import { formatINR, timeAgo, initials } from "@/lib/format";
+import { roleLabel, displayStatus } from "@/lib/verification";
+
+const VERIFICATION_COLORS = {
+  verified: "#10b981",
+  partial: "#14b8a6",
+  under_review: "#f59e0b",
+  needs_information: "#b45309",
+  pending: "#94a3b8",
+  rejected: "#ef4444",
+};
+
+function RoleVerificationChart({ data }) {
+  // Only the five states `deriveOverall` can return. `needs_information` is a
+  // per-field status, not an overall one, so it is surfaced as its own tile.
+  const states = ["verified", "partial", "under_review", "pending", "rejected"];
+
+  const rows = Object.entries(data || {}).map(([role, counts]) => {
+    const total = counts?.total || 0;
+    const segments = states
+      .map((s) => ({ state: s, value: counts?.[s] || 0 }))
+      .filter((s) => s.value > 0);
+    return { role, total, counts, segments };
+  });
+
+  return (
+    <div className="space-y-4">
+      {rows.length === 0 && <p className="text-sm text-muted">No verification data yet.</p>}
+      {rows.map(({ role, total, segments }) => (
+        <div key={role}>
+          <div className="mb-1.5 flex items-center justify-between text-sm">
+            <span className="font-semibold text-foreground">{roleLabel(role)}</span>
+            <span className="text-xs text-muted">
+              {total === 0
+                ? "no profiles"
+                : `${total} profile${total === 1 ? "" : "s"}`}
+            </span>
+          </div>
+          {total > 0 && (
+            <>
+              <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+                {segments.map((s) => (
+                  <div
+                    key={s.state}
+                    style={{ width: `${(s.value / total) * 100}%`, background: VERIFICATION_COLORS[s.state] }}
+                    title={`${displayStatus(s.state)}: ${s.value}`}
+                  />
+                ))}
+              </div>
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                {segments.map((s) => (
+                  <span key={s.state} className="inline-flex items-center gap-1 text-[11px] text-muted">
+                    <span className="h-2 w-2 rounded-full" style={{ background: VERIFICATION_COLORS[s.state] }} />
+                    {displayStatus(s.state)} {s.value}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ActivityChart({ points }) {
+  const series = points || [];
+  if (!series.length) {
+    return (
+      <div className="flex h-40 items-center justify-center">
+        <p className="text-sm text-muted">No verification activity recorded yet.</p>
+      </div>
+    );
+  }
+  const W = 560;
+  const H = 160;
+  const padX = 8;
+  const padY = 16;
+  const max = Math.max(1, ...series.map((p) => p.count));
+  const stepX = (W - padX * 2) / Math.max(1, series.length - 1);
+  const pts = series.map((p, i) => ({
+    x: padX + i * stepX,
+    y: H - padY - (p.count / max) * (H - padY * 2),
+    count: p.count,
+    label: p.date.slice(5),
+  }));
+  const line = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const area = `${padX},${H - padY} ${line} ${pts.length ? pts[pts.length - 1].x.toFixed(1) : padX},${H - padY}`;
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-44 w-full" role="img" aria-label="Verification activity over last 14 days">
+        <line x1={padX} y1={H - padY} x2={W - padX} y2={H - padY} stroke="#e2e8f0" strokeWidth="1" />
+        <polygon points={area} fill="rgba(20,184,166,0.08)" />
+        <polyline points={line} fill="none" stroke="#14b8a6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {pts.map((p) => (
+          <circle key={p.label} cx={p.x} cy={p.y} r="3" fill="#14b8a6">
+            <title>{`${p.label}: ${p.count} action${p.count === 1 ? "" : "s"}`}</title>
+          </circle>
+        ))}
+      </svg>
+      <div className="mt-1 flex items-center justify-between text-[11px] text-muted">
+        <span>{series[0]?.date}</span>
+        <span>{series[series.length - 1]?.date}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
   const { data, loading, error, refetch } = useAdminFetch("/api/admin/dashboard");
@@ -33,7 +139,7 @@ export default function AdminDashboardPage() {
     { label: "Land pending approval", href: "/admin/land", value: stats.pendingLands ?? "—", icon: Map, tone: "amber" },
     { label: "Open reports", href: "/admin/reports", value: stats.openReports ?? "—", icon: Flag, tone: "red" },
     { label: "Procurement orders", href: "/admin/orders", value: stats.orders ?? "—", icon: ShoppingCart, tone: "green" },
-    { label: "Open requirements", href: "/admin/requirements", value: stats.requirements ?? "—", icon: ClipboardList, tone: "blue" },
+    { label: "Awaiting info", href: "/admin/verification", value: stats.needsInfo ?? "—", icon: FileCheck2, tone: "amber" },
   ];
 
   return (
@@ -97,6 +203,26 @@ export default function AdminDashboardPage() {
                 ))}
                 {(recent.signups || []).length === 0 && <p className="text-sm text-muted">No signups yet.</p>}
               </div>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card>
+              <h3 className="mb-4 text-sm font-bold text-foreground">Verification by role</h3>
+              <RoleVerificationChart data={data.breakdown?.verificationByRole} />
+            </Card>
+            <Card className="lg:col-span-2">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-foreground">Verification activity</h3>
+                <div className="flex flex-wrap gap-2">
+                  {(data.breakdown?.verificationActions || []).map((a) => (
+                    <span key={a.action} className="rounded-lg bg-secondary px-2 py-1 text-[11px] font-medium text-muted">
+                      {a.action.replace(/_/g, " ")} · {a.count}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <ActivityChart points={data.activity?.verification} />
             </Card>
           </div>
 

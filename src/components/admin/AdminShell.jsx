@@ -24,6 +24,7 @@ import {
   Menu,
   X,
   LogOut,
+  Calculator,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { initials } from "@/lib/format";
@@ -32,6 +33,10 @@ import Logo from "@/components/Logo";
 const NAV = [
   { section: "Overview", items: [{ label: "Dashboard", href: "/admin", icon: LayoutDashboard }] },
   {
+    section: "Model",
+    items: [{ label: "Valuation engine", href: "/admin/valuation", icon: Calculator }],
+  },
+  {
     section: "Platform",
     items: [
       { label: "Users", href: "/admin/users", icon: Users },
@@ -39,6 +44,15 @@ const NAV = [
       { label: "Documents", href: "/admin/documents", icon: FileCheck2 },
       { label: "Reports & Disputes", href: "/admin/reports", icon: Flag },
       { label: "Notifications", href: "/admin/notifications", icon: Bell },
+    ],
+  },
+  {
+    section: "Roles",
+    items: [
+      { label: "Builders", href: "/admin/builders", icon: Building2 },
+      { label: "Landowners", href: "/admin/landowners", icon: Map },
+      { label: "Buyers", href: "/admin/buyers", icon: Users },
+      { label: "Suppliers", href: "/admin/suppliers", icon: Boxes },
     ],
   },
   {
@@ -52,7 +66,6 @@ const NAV = [
   {
     section: "Procurement",
     items: [
-      { label: "Suppliers", href: "/admin/suppliers", icon: Users },
       { label: "Materials", href: "/admin/materials", icon: Boxes },
       { label: "Requirements", href: "/admin/requirements", icon: ClipboardList },
       { label: "Bids (Quotations)", href: "/admin/bids", icon: Gavel },
@@ -106,9 +119,11 @@ export default function AdminShell({ children, title = "Admin", subtitle }) {
             </p>
             <div className="space-y-0.5">
               {group.items.map((item) => {
+                // Compare whole path segments. A plain `startsWith` would make
+                // "/admin/land" (Land Listings) light up on "/admin/landowners",
+                // highlighting two nav items at once.
                 const active =
-                  pathname === item.href ||
-                  (item.href !== "/admin" && pathname.startsWith(item.href));
+                  pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (
                   <Link
                     key={item.label}

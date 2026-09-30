@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { verificationMetaField } from "@/lib/models/verificationItem";
 
 const coOwnerSchema = new mongoose.Schema(
   {
@@ -33,7 +34,7 @@ const landownerProfileSchema = new mongoose.Schema(
       status: {
         type: String,
         default: "pending",
-        enum: ["pending", "submitted", "verified", "rejected"],
+        enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"],
       },
     },
 
@@ -50,6 +51,9 @@ const landownerProfileSchema = new mongoose.Schema(
 
     onboardingComplete: { type: Boolean, default: false },
 
+    // Per-field review trail (rejection reason, reviewer, timestamps).
+    verificationMeta: verificationMetaField(),
+
     reviewNotes: { type: String, default: "" },
     reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     reviewedAt: { type: Date, default: null },
@@ -60,6 +64,7 @@ const landownerProfileSchema = new mongoose.Schema(
 );
 
 landownerProfileSchema.index({ userId: 1 });
+landownerProfileSchema.index({ "identityDocument.status": 1 });
 
 export default mongoose.models.LandownerProfile ||
   mongoose.model("LandownerProfile", landownerProfileSchema);

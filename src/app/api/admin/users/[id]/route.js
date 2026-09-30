@@ -10,13 +10,7 @@ import BuilderProfile from "@/lib/models/BuilderProfile";
 import SupplierProfile from "@/lib/models/SupplierProfile";
 import BuyerProfile from "@/lib/models/BuyerProfile";
 import LandownerProfile from "@/lib/models/LandownerProfile";
-
-const PROFILE_MODELS = {
-  landowner: LandownerProfile,
-  builder: BuilderProfile,
-  supplier: SupplierProfile,
-  buyer: BuyerProfile,
-};
+import { VERIFIED_ROLES, summarizeRoleVerification } from "@/lib/verification";
 
 function safeUser(u) {
   const { passwordHash, ...rest } = u;
@@ -48,6 +42,11 @@ export const GET = withErrorHandling(async (request, ctx) => {
   return ok({
     user: safeUser(user),
     profiles: { landowner, builder, supplier, buyer },
+    // Per-role verification summary (statuses, overall, reasons, reviewer),
+    // derived with the same helpers the queue and role lists use.
+    verificationByRole: VERIFIED_ROLES.map((r) =>
+      summarizeRoleVerification(r, { landowner, builder, supplier, buyer }[r], user)
+    ).filter(Boolean),
     listings,
     applications,
     orders,
@@ -64,15 +63,18 @@ export const PATCH = withErrorHandling(async (request, ctx) => {
   const body = await request.json();
   await connectDB();
 
-  const model = PROFILE_MODELS[body.role] || null;
-
   const user = await User.findById(id).select("+passwordHash");
   if (!user) return fail("User not found.", 404);
   if (user.roles?.includes("admin") && String(user._id) !== String(admin._id)) {
     return fail("You cannot modify another admin account.", 403);
   }
 
-  const validActions = ["suspend", "reactivate", "deactivate", "verify_profile", "mark_profile_incomplete"];
+  // Field-level verification deliberately does not live here. It goes through
+  // PATCH /api/admin/verification/[id]?role=..., which writes a status, a
+  // reason, an audit entry and a notification per field. The old
+  // `verify_profile` action only stamped reviewedBy/reviewedAt on the profile
+  // and changed no status at all, while the UI labelled it "Verify profile".
+  const validActions = ["suspend", "reactivate", "deactivate", "mark_profile_incomplete"];
   if (!validActions.includes(body.action)) return fail("Invalid action.", 400);
   const reason = sanitizeText(body.reason, 500);
 
@@ -94,14 +96,6 @@ export const PATCH = withErrorHandling(async (request, ctx) => {
       return fail("Account is already deactivated.", 400);
     }
     await User.findByIdAndUpdate(id, { $set: { accountStatus: "deactivated" } });
-  } else if (body.action === "verify_profile") {
-    if (!model) return fail("A role is required to verify a profile.", 400);
-    const profile = await model.findOne({ userId: id });
-    if (!profile) return fail("Profile not found for this user.", 404);
-    profile.reviewedBy = admin._id;
-    profile.reviewedAt = new Date();
-    profile.reviewNotes = reason || profile.reviewNotes;
-    await profile.save();
   } else if (body.action === "mark_profile_incomplete") {
     await User.findByIdAndUpdate(id, { $set: { profileCompleted: false } });
   }
@@ -117,7 +111,7 @@ export const PATCH = withErrorHandling(async (request, ctx) => {
       body.action === "suspend" ? "suspended"
       : body.action === "reactivate" ? "active"
       : body.action === "deactivate" ? "deactivated"
-      : body.action === "verify_profile" ? (prevCompleted ? "completed" : "profile_verified") : "",
+      : "incomplete",
     reason,
   });
 

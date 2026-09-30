@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { verificationMetaField } from "@/lib/models/verificationItem";
 
 const userSchema = new mongoose.Schema(
   {
@@ -65,19 +66,26 @@ const userSchema = new mongoose.Schema(
       identity: {
         type: String,
         default: "pending",
-        enum: ["pending", "submitted", "verified", "rejected"],
+        enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"],
       },
       address: {
         type: String,
         default: "pending",
-        enum: ["pending", "submitted", "verified", "rejected"],
+        enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"],
       },
       phone: {
         type: String,
         default: "pending",
-        enum: ["pending", "submitted", "verified", "rejected"],
+        enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"],
       },
     },
+
+    /**
+     * Per-field review trail for the verification fields stored on the user
+     * itself (`phone`, and `address` for landowners). Profile-owned fields keep
+     * their own copy on the role profile. See `@/lib/verification`.
+     */
+    verificationMeta: verificationMetaField(),
   },
   {
     timestamps: true,
@@ -87,5 +95,6 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ username: 1 }, { unique: true });
 userSchema.index({ roles: 1 });
+userSchema.index({ "verification.phone": 1 });
 
 export default mongoose.models.User || mongoose.model("User", userSchema);

@@ -3,13 +3,17 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Conversation from "@/lib/models/Conversation";
 import Message from "@/lib/models/Message";
+import User from "@/lib/models/User";
 import { ok, fail, sanitizeText } from "@/lib/api";
 import { withErrorHandling } from "@/lib/api";
 import { createNotification } from "@/lib/notifications";
+import { roleDestination } from "@/lib/navigation";
 
 // Resolve the two participant user ids of a conversation.
 function participants(conversation) {
   const ids = [];
+  if (conversation.participantA) ids.push(String(conversation.participantA));
+  if (conversation.participantB) ids.push(String(conversation.participantB));
   if (conversation.builderId) ids.push(String(conversation.builderId));
   if (conversation.landownerId) ids.push(String(conversation.landownerId));
   if (conversation.buyerId) ids.push(String(conversation.buyerId));
@@ -23,12 +27,19 @@ function participants(conversation) {
 }
 
 // Resolve the appropriate messages URL for a given participant user.
-function messagesLinkFor(userId, conversation) {
+async function messagesLinkFor(userId, conversation) {
   if (String(conversation.builderId) === String(userId)) return "/builder/messages";
   if (String(conversation.landownerId) === String(userId)) return "/landowner/messages";
   if (String(conversation.buyerId) === String(userId)) return "/buyer/messages";
   if (String(conversation.supplierId) === String(userId)) return "/supplier/messages";
-  return "/messages";
+  try {
+    const u = await User.findById(userId).select("roles profileCompleted").lean();
+    const dest = u ? roleDestination(u) : "/";
+    const base = dest.replace(/\/dashboard$/, "");
+    return `${base}/messages`;
+  } catch {
+    return "/messages";
+  }
 }
 
 export const GET = withErrorHandling(async (request, ctx) => {
@@ -57,11 +68,15 @@ export const GET = withErrorHandling(async (request, ctx) => {
     .sort({ createdAt: 1 })
     .lean();
 
-  // Attach the other participant id for the client.
+  const conv = { ...conversation };
+  const otherId = receiverId || null;
+  const otherUser = otherId ? await User.findById(otherId).select("name username avatar roles").lean() : null;
+
   return ok({
     messages,
-    otherParticipantId: receiverId || null,
-    context: conversation.context,
+    otherParticipantId: otherId,
+    otherParticipant: otherUser,
+    context: conv.context,
   });
 });
 
@@ -108,7 +123,7 @@ export const POST = withErrorHandling(async (request, ctx) => {
     message: text.length > 100 ? text.slice(0, 100) + "…" : text,
     entityType: "conversation",
     entityId: conversation._id,
-    link: messagesLinkFor(receiverId, conversation),
+    link: await messagesLinkFor(receiverId, conversation),
     metadata: { conversationId: conversation._id, messageId: message._id },
   });
 

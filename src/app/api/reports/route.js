@@ -17,11 +17,21 @@ export const POST = withErrorHandling(async (request) => {
   const documents = Array.isArray(body.documents)
     ? body.documents.map((d) => String(d).slice(0, 500)).filter(Boolean)
     : [];
+  // Keep a small, safe slice of structured context (e.g. reported conversation).
+  const metadata =
+    body.metadata && typeof body.metadata === "object"
+      ? {
+          conversationId: String(body.metadata.conversationId || "").slice(0, 64),
+          messageId: String(body.metadata.messageId || "").slice(0, 64),
+          otherParticipantName: sanitizeText(body.metadata.otherParticipantName, 120),
+          lastMessagePreview: sanitizeText(body.metadata.lastMessagePreview, 500),
+        }
+      : {};
 
   if (!description || description.length < 10) {
     return fail("Please describe the issue in at least 10 characters.", 400);
   }
-  if (!["land", "project", "order", "application", "user", "other"].includes(subjectType)) {
+  if (!["land", "listing", "project", "message", "conversation", "order", "application", "user", "other"].includes(subjectType)) {
     return fail("Please choose a valid subject.", 400);
   }
 
@@ -34,6 +44,7 @@ export const POST = withErrorHandling(async (request) => {
     category,
     description,
     documents,
+    metadata,
     priority: ["LOW", "MEDIUM", "HIGH", "URGENT"].includes(priority) ? priority : "MEDIUM",
     status: "OPEN",
     history: [

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { verificationMetaField } from "@/lib/models/verificationItem";
 
 const operatingLocationSchema = new mongoose.Schema(
   {
@@ -57,12 +58,15 @@ const supplierProfileSchema = new mongoose.Schema(
 
     // STEP 3 - Verification state (never faked)
     verification: {
-      business: { type: String, default: "pending", enum: ["pending", "submitted", "verified", "rejected"] },
-      gst: { type: String, default: "pending", enum: ["pending", "submitted", "verified", "rejected"] },
-      pan: { type: String, default: "pending", enum: ["pending", "submitted", "verified", "rejected"] },
-      udyam: { type: String, default: "pending", enum: ["pending", "submitted", "verified", "rejected"] },
-      address: { type: String, default: "pending", enum: ["pending", "submitted", "verified", "rejected"] },
+      business: { type: String, default: "pending", enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"] },
+      gst: { type: String, default: "pending", enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"] },
+      pan: { type: String, default: "pending", enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"] },
+      udyam: { type: String, default: "pending", enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"] },
+      address: { type: String, default: "pending", enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"] },
     },
+
+    // Per-field review trail (rejection reason, reviewer, timestamps).
+    verificationMeta: verificationMetaField(),
 
     // STEP 4 - Business details
     yearsOfExperience: { type: Number, min: 0, default: 0 },
@@ -97,6 +101,7 @@ const supplierProfileSchema = new mongoose.Schema(
 supplierProfileSchema.index({ userId: 1 });
 supplierProfileSchema.index({ businessName: 1 });
 supplierProfileSchema.index({ category: 1 });
+supplierProfileSchema.index({ "verification.gst": 1, "verification.pan": 1 });
 
 export default mongoose.models.SupplierProfile ||
   mongoose.model("SupplierProfile", supplierProfileSchema);

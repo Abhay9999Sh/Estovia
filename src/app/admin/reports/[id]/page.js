@@ -93,6 +93,33 @@ export default function AdminReportDetailPage() {
           </Card>
 
           <Card>
+            <h3 className="mb-3 text-sm font-bold text-foreground">Message context</h3>
+            {(report.subjectType === "message" || report.subjectType === "conversation") && report.metadata?.conversationId ? (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-border bg-secondary/40 p-3">
+                  <p className="text-xs font-semibold text-muted">Conversation with</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {report.metadata.otherParticipantName || report.subjectId || "—"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted">Conversation ID: {report.metadata.conversationId}</p>
+                </div>
+                <div className="rounded-xl border border-border bg-secondary/40 p-3">
+                  <p className="text-xs font-semibold text-muted">Last message preview</p>
+                  {report.metadata.lastMessagePreview ? (
+                    <p className="mt-1 whitespace-pre-wrap rounded-lg bg-white p-2.5 text-sm text-foreground">
+                      {report.metadata.lastMessagePreview}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted">No preview available.</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted">No messaging metadata attached to this report.</p>
+            )}
+          </Card>
+
+          <Card>
             <h3 className="mb-3 text-sm font-bold text-foreground">Timeline</h3>
             <div className="space-y-3">
               {history.length === 0 && <p className="text-sm text-muted">No history entries yet.</p>}

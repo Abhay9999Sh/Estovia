@@ -1,49 +1,60 @@
 import { connectDB } from "@/lib/mongodb";
-import { requireAdmin, parsePagination, parseSearch } from "@/lib/admin";
-import { ok } from "@/lib/api";
+import { requireAdmin } from "@/lib/admin";
 import { withErrorHandling } from "@/lib/api";
 import SupplierProfile from "@/lib/models/SupplierProfile";
-import User from "@/lib/models/User";
 import Order from "@/lib/models/Order";
+import { readAllStatuses, readAllMeta, deriveOverall } from "@/lib/verification";
+import { queryRoleList, listResponse } from "@/lib/adminVerificationQuery";
+
+const ROLE = "supplier";
 
 export const GET = withErrorHandling(async (request) => {
   await requireAdmin();
   await connectDB();
 
-  const { q, status } = parseSearch(request.nextUrl.searchParams);
-  const filter = {};
-  if (status && status !== "all") {
-    if (status === "verified") filter["verification.business"] = "verified";
-    else if (status === "complete") filter.onboardingComplete = true;
-    else if (status === "pending") filter.onboardingComplete = false;
-  }
-  if (q) {
-    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-    filter.$or = [{ businessName: re }, { ownerName: re }, { fullName: re }, { category: re }, { gstin: re }, { pan: re }];
-  }
+  // `status` carries the derived verification state, matching the other role
+  // lists. Profile completion is a separate concern and has its own param,
+  // because "pending" used to mean "onboarding incomplete" here and clashed
+  // with the verification meaning of the same word.
+  const profileFilter = (request.nextUrl.searchParams.get("profile") || "").trim();
+  const extraMatch =
+    profileFilter === "complete"
+      ? { onboardingComplete: true }
+      : profileFilter === "incomplete"
+        ? { onboardingComplete: { $ne: true } }
+        : null;
 
-  const { page, limit, skip } = parsePagination(request.nextUrl.searchParams, 20, 100);
-  const [suppliers, total] = await Promise.all([
-    SupplierProfile.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    SupplierProfile.countDocuments(filter),
+  const result = await queryRoleList({
+    Model: SupplierProfile,
+    role: ROLE,
+    searchParams: request.nextUrl.searchParams,
+    profileSearch: ["businessName", "ownerName", "fullName", "category", "gstin", "pan"],
+    userSearch: ["name", "email", "username", "phone"],
+    extraMatch,
+  });
+
+  const profileIds = result.docs.map((d) => d._id).filter(Boolean);
+  const orderStats = await Order.aggregate([
+    { $match: { supplierProfileId: { $in: profileIds } } },
+    { $group: { _id: "$supplierProfileId", orders: { $sum: 1 }, revenue: { $sum: "$totalAmount" } } },
   ]);
+  const statsByProfile = new Map(orderStats.map((o) => [String(o._id), o]));
 
-  const [users, orders] = await Promise.all([
-    User.find({ _id: { $in: suppliers.map((s) => s.userId).filter(Boolean) } }).select("name username email accountStatus").lean(),
-    Order.aggregate([
-      { $match: { supplierProfileId: { $in: suppliers.map((s) => s._id) } } },
-      { $group: { _id: "$supplierProfileId", orders: { $sum: 1 }, revenue: { $sum: "$totalAmount" } } },
-    ]),
-  ]);
-  const uById = new Map(users.map((u) => [String(u._id), u]));
-  const statByProfile = new Map(orders.map((o) => [String(o._id), o]));
-
-  const items = suppliers.map((s) => ({
-    ...s,
-    user: uById.get(String(s.userId)) || null,
-    stats: statByProfile.get(String(s._id)) || { orders: 0, revenue: 0 },
-    verificationStatus: s.verification?.business || "pending",
-  }));
-
-  return ok({ items, total, page, limit, pageCount: Math.max(1, Math.ceil(total / limit)) });
+  return listResponse(result, (s, u) => {
+    const verification = readAllStatuses(ROLE, s, u);
+    return {
+      userId: u._id,
+      profileId: s._id,
+      ...s,
+      user: { _id: u._id, name: u.name, username: u.username, email: u.email, accountStatus: u.accountStatus },
+      phone: u.phone || s.phone || "",
+      createdAt: u.createdAt || s.createdAt || null,
+      stats: statsByProfile.get(String(s._id)) || { orders: 0, revenue: 0 },
+      profileCompleted: !!s.onboardingComplete,
+      verification,
+      verificationMeta: readAllMeta(ROLE, s, u),
+      overall: deriveOverall(verification),
+      verificationStatus: verification.business || "pending",
+    };
+  });
 });

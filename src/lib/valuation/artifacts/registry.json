@@ -1,0 +1,823 @@
+{
+ "featureSchemaVersion": "feat.v1",
+ "target": "log_price_per_sqft",
+ "targetSemantics": "advertised asking prices from public, permissively licensed listing datasets. No registered-transaction data was obtainable in this environment, so this engine does NOT estimate registered sale prices.",
+ "geography": {
+  "cities": [
+   "Faridabad",
+   "Ghaziabad",
+   "Greater Noida",
+   "Gurugram",
+   "New Delhi",
+   "Noida"
+  ],
+  "note": "Delhi NCR only. Requests outside these cities return an explicit unsupported status."
+ },
+ "segmentsNotTrained": [
+  "land"
+ ],
+ "segmentsObserved": [
+  "builtup",
+  "land"
+ ],
+ "productionModelId": "estovia-builtup-20260929185112",
+ "models": [
+  {
+   "modelId": "estovia-builtup-20260929185112",
+   "segment": "builtup",
+   "estimator": "xgboost",
+   "trainedAt": "2026-09-29T18:51:12+00:00",
+   "artifactPath": "artifacts/model_builtup.json",
+   "evaluationPath": "artifacts/evaluation_builtup.json",
+   "testMetrics": {
+    "n": 1418,
+    "mae": 2714074.390317971,
+    "median_absolute_error": 2137954.8040425885,
+    "rmse": 3974313.407165181,
+    "mape_pct": 48.7330110902023,
+    "median_ape_pct": 42.7187677624277,
+    "wape_pct": 43.68753729556652,
+    "r2": 0.39165133421767706,
+    "interval_coverage_pct": 99.71791255289139,
+    "mean_interval_width": 14510190.653428517,
+    "conformal_n_calibration": 2432
+   },
+   "testMetricsProvenance": "verified-replay-of-exported-artefact",
+   "verifiedAt": "2026-09-30T05:15:41+00:00",
+   "baselineMetrics": {
+    "n": 1418,
+    "mae": 3860729.463222703,
+    "median_absolute_error": 3500000.0000000037,
+    "rmse": 4735923.395405785,
+    "mape_pct": 73.55699657855169,
+    "median_ape_pct": 73.18555281155017,
+    "wape_pct": 62.14485609323115,
+    "r2": 0.136151319474072,
+    "interval_coverage_pct": 98.66008462623414,
+    "mean_interval_width": 14407933.345935397,
+    "conformal_n_calibration": 2432
+   },
+   "observations": {
+    "total": 17637,
+    "train": 13787,
+    "calibration": 2432,
+    "test": 1418
+   },
+   "beatsBaseline": true,
+   "nonCommercialSourcesIncluded": false,
+   "selectedModel": "xgboost",
+   "split": {
+    "kind": "geographic",
+    "train_description": "grouped random split inside non-holdout cities (by city+locality+project+price bucket)",
+    "test_description": "geographic holdout: whole cities ['Faridabad', 'Greater Noida']",
+    "temporal_validation": {
+     "status": "unavailable",
+     "reason": "No accepted source publishes an observation date for its records, so a train-on-past/test-on-future split cannot be constructed without fabricating dates. Geographic and grouped holdouts are used instead and this limitation is reported."
+    }
+   },
+   "conformal": {
+    "q": 0.8768559022935312,
+    "alpha": 0.1,
+    "n_calibration": 2432,
+    "method": "split_conformal_relative_error"
+   },
+   "segmentMetrics": {
+    "by_city": {
+     "Faridabad": {
+      "n": 537,
+      "mae": 2990077.4993848535,
+      "median_absolute_error": 2130793.203125,
+      "rmse": 4910482.965048199,
+      "mape_pct": 44.791331670179815,
+      "median_ape_pct": 38.48582313939144,
+      "wape_pct": 39.389838413919925,
+      "r2": 0.44154329321249786,
+      "sufficient": true
+     },
+     "Greater Noida": {
+      "n": 881,
+      "mae": 2387793.521667273,
+      "median_absolute_error": 2081835.64453125,
+      "rmse": 3075837.807606697,
+      "mape_pct": 47.515877682070986,
+      "median_ape_pct": 43.97884521484375,
+      "wape_pct": 44.44710860502327,
+      "r2": 0.304730853853345,
+      "sufficient": true
+     }
+    },
+    "by_category": {
+     "apartment": {
+      "n": 1162,
+      "mae": 2666856.3902680236,
+      "median_absolute_error": 2149051.8322753906,
+      "rmse": 4000203.8471323038,
+      "mape_pct": 47.19280312824197,
+      "median_ape_pct": 42.18036339911099,
+      "wape_pct": 42.91998262489621,
+      "r2": 0.36526062654256697,
+      "sufficient": true
+     },
+     "independent_house": {
+      "n": 256,
+      "mae": 2384494.4697933197,
+      "median_absolute_error": 2015247.2016601562,
+      "rmse": 3241363.0810967465,
+      "mape_pct": 43.26717230380444,
+      "median_ape_pct": 39.62549699263139,
+      "wape_pct": 38.41287901349102,
+      "r2": 0.6424863761297597,
+      "sufficient": true
+     }
+    },
+    "by_price_range": {},
+    "by_locality_top": {
+     "Greater Noida|greater noida west": {
+      "n": 131,
+      "mae": 736086.1115014462,
+      "median_absolute_error": 641364.9658203125,
+      "rmse": 949862.0717557081,
+      "mape_pct": 14.869418360190942,
+      "median_ape_pct": 13.703721069335936,
+      "wape_pct": 15.387741260143533,
+      "r2": 0.6004911786504885,
+      "sufficient": true
+     },
+     "Greater Noida|sector_1": {
+      "n": 44,
+      "mae": 1588663.9770618787,
+      "median_absolute_error": 1499419.140625,
+      "rmse": 1680965.9569588655,
+      "mape_pct": 36.51888012818086,
+      "median_ape_pct": 34.41433212890625,
+      "wape_pct": 33.41837500154069,
+      "r2": 0.03925254508854181,
+      "sufficient": true
+     },
+     "Greater Noida|yamuna expressway": {
+      "n": 43,
+      "mae": 2637248.4977289243,
+      "median_absolute_error": 2533266.1376953125,
+      "rmse": 2759465.585730301,
+      "mape_pct": 61.685673622145245,
+      "median_ape_pct": 63.91016540527343,
+      "wape_pct": 59.15580876491588,
+      "r2": -4.189964941219461,
+      "sufficient": true
+     },
+     "Greater Noida|sector_16": {
+      "n": 42,
+      "mae": 840112.0142415365,
+      "median_absolute_error": 557861.4880371094,
+      "rmse": 1078285.7788197326,
+      "mape_pct": 18.525463670769042,
+      "median_ape_pct": 13.944939113451088,
+      "wape_pct": 18.671131653161464,
+      "r2": -0.13676597483478026,
+      "sufficient": true
+     },
+     "Greater Noida|zeta 1": {
+      "n": 34,
+      "mae": 3049033.6863223803,
+      "median_absolute_error": 2852152.63671875,
+      "rmse": 3244342.7618947057,
+      "mape_pct": 57.98884297724896,
+      "median_ape_pct": 60.59193252012929,
+      "wape_pct": 54.43273580202727,
+      "r2": -2.2759245050148444,
+      "sufficient": true
+     },
+     "Faridabad|sector_86": {
+      "n": 28,
+      "mae": 2595668.7371128625,
+      "median_absolute_error": 2584603.802734375,
+      "rmse": 2762597.898765599,
+      "mape_pct": 57.43168304428189,
+      "median_ape_pct": 54.386586032774396,
+      "wape_pct": 56.96717717444753,
+      "r2": -5.13601992853404,
+      "sufficient": true
+     },
+     "Faridabad|sector_88": {
+      "n": 27,
+      "mae": 3557261.4362702547,
+      "median_absolute_error": 3450273.4375,
+      "rmse": 3870776.672121624,
+      "mape_pct": 61.88907253205455,
+      "median_ape_pct": 62.51143977864584,
+      "wape_pct": 59.04349835820795,
+      "r2": -5.2321397652641926,
+      "sufficient": true
+     },
+     "Greater Noida|omicron 3": {
+      "n": 25,
+      "mae": 2325412.7763867187,
+      "median_absolute_error": 2531835.64453125,
+      "rmse": 2477757.0792738707,
+      "mape_pct": 55.22071425161245,
+      "median_ape_pct": 60.28180106026786,
+      "wape_pct": 55.319554105688425,
+      "r2": -21.363116376047255,
+      "sufficient": true
+     },
+     "Greater Noida|sector_4": {
+      "n": 24,
+      "mae": 862440.8391723633,
+      "median_absolute_error": 763156.5643310547,
+      "rmse": 1039652.1294712493,
+      "mape_pct": 17.767590047214544,
+      "median_ape_pct": 14.262764309016188,
+      "wape_pct": 17.02185866787559,
+      "r2": 0.5201749569789158,
+      "sufficient": true
+     },
+     "Greater Noida|techzone 4": {
+      "n": 24,
+      "mae": 2323339.1305135093,
+      "median_absolute_error": 2436708.6584472656,
+      "rmse": 2439134.1266001384,
+      "mape_pct": 49.64232102599402,
+      "median_ape_pct": 48.572339913504464,
+      "wape_pct": 47.65823857463609,
+      "r2": -3.048341562265101,
+      "sufficient": true
+     },
+     "Faridabad|sector_77": {
+      "n": 23,
+      "mae": 2315180.9609375,
+      "median_absolute_error": 2077250.5126953125,
+      "rmse": 2451254.7256273543,
+      "mape_pct": 62.43634179037512,
+      "median_ape_pct": 62.70572300502232,
+      "wape_pct": 56.835480949474324,
+      "r2": -2.102267375135976,
+      "sufficient": true
+     },
+     "Greater Noida|omicron 1": {
+      "n": 22,
+      "mae": 3058904.5505814985,
+      "median_absolute_error": 2878675.3173828125,
+      "rmse": 3259761.8383709257,
+      "mape_pct": 62.69914953626146,
+      "median_ape_pct": 61.85386997320713,
+      "wape_pct": 61.598077906446655,
+      "r2": -3.823351315506411,
+      "sufficient": true
+     },
+     "Faridabad|sector_70": {
+      "n": 20,
+      "mae": 3920947.737084961,
+      "median_absolute_error": 4061296.5173339844,
+      "rmse": 3980139.644569864,
+      "mape_pct": 93.87716281779245,
+      "median_ape_pct": 92.65359533497643,
+      "wape_pct": 90.24045424821544,
+      "r2": -16.233551731378853,
+      "sufficient": true
+     },
+     "Faridabad|sector_21c": {
+      "n": 19,
+      "mae": 5109054.236610814,
+      "median_absolute_error": 3291738.867187498,
+      "rmse": 7045050.725831301,
+      "mape_pct": 34.4466346092513,
+      "median_ape_pct": 35.69712109375,
+      "wape_pct": 40.21377459530447,
+      "r2": 0.3056741344098596,
+      "sufficient": true
+     },
+     "Faridabad|sector_78": {
+      "n": 17,
+      "mae": 2192487.19447955,
+      "median_absolute_error": 2118365.244140625,
+      "rmse": 2333016.8321928987,
+      "mape_pct": 56.43145083653146,
+      "median_ape_pct": 54.71228298875762,
+      "wape_pct": 52.143651799317766,
+      "r2": -0.42608107053733857,
+      "sufficient": true
+     },
+     "Greater Noida|eta 2": {
+      "n": 17,
+      "mae": 2757494.6912626377,
+      "median_absolute_error": 2680831.7333984375,
+      "rmse": 2961498.5460314155,
+      "mape_pct": 67.14590830138827,
+      "median_ape_pct": 62.344924032521796,
+      "wape_pct": 64.79254976014491,
+      "r2": -6.568655025304573,
+      "sufficient": true
+     },
+     "Faridabad|sector_89": {
+      "n": 16,
+      "mae": 1260821.8715820312,
+      "median_absolute_error": 890776.318359375,
+      "rmse": 1672394.8411316385,
+      "mape_pct": 21.385701805158096,
+      "median_ape_pct": 18.551674208700362,
+      "wape_pct": 19.175998046875,
+      "r2": 0.6928482647016061,
+      "sufficient": true
+     },
+     "Faridabad|sector_49": {
+      "n": 15,
+      "mae": 1363539.014876302,
+      "median_absolute_error": 882101.6796875,
+      "rmse": 1839638.941019059,
+      "mape_pct": 23.903677382931136,
+      "median_ape_pct": 22.601551231971154,
+      "wape_pct": 23.810343682356848,
+      "r2": 0.7107614134497736,
+      "sufficient": true
+     },
+     "Faridabad|sector_75": {
+      "n": 15,
+      "mae": 4970086.774153646,
+      "median_absolute_error": 3341061.9140625,
+      "rmse": 8341644.290396005,
+      "mape_pct": 92.56685613558865,
+      "median_ape_pct": 87.92268194901315,
+      "wape_pct": 110.51186126935175,
+      "r2": -20.657752862932835,
+      "sufficient": true
+     },
+     "Greater Noida|chi 5": {
+      "n": 14,
+      "mae": 2667001.278843471,
+      "median_absolute_error": 2268543.841796875,
+      "rmse": 3094850.966020142,
+      "mape_pct": 50.44699167094997,
+      "median_ape_pct": 58.619027543288006,
+      "wape_pct": 45.95448357391827,
+      "r2": -0.24835483950544135,
+      "sufficient": false
+     },
+     "Greater Noida|sector_2": {
+      "n": 14,
+      "mae": 276574.279523577,
+      "median_absolute_error": 231970.49926757812,
+      "rmse": 324033.7925128449,
+      "mape_pct": 8.039142835655255,
+      "median_ape_pct": 6.872908880060368,
+      "wape_pct": 7.662853578725665,
+      "r2": 0.8110405908791706,
+      "sufficient": false
+     },
+     "Greater Noida|surajpur": {
+      "n": 14,
+      "mae": 2127696.2385253906,
+      "median_absolute_error": 1513777.568359375,
+      "rmse": 2600813.7078415193,
+      "mape_pct": 43.13620889352387,
+      "median_ape_pct": 40.3641536009339,
+      "wape_pct": 45.44278770305945,
+      "r2": -0.5158370799560508,
+      "sufficient": false
+     },
+     "Faridabad|sector_85": {
+      "n": 13,
+      "mae": 3086747.5605093148,
+      "median_absolute_error": 2221844.3359375,
+      "rmse": 3768225.9817671864,
+      "mape_pct": 48.3522916131956,
+      "median_ape_pct": 52.146849437040444,
+      "wape_pct": 48.58077274409333,
+      "r2": -1.506968169692894,
+      "sufficient": false
+     },
+     "Faridabad|sector_84": {
+      "n": 12,
+      "mae": 1296174.5526936848,
+      "median_absolute_error": 1230008.49609375,
+      "rmse": 1439558.627607976,
+      "mape_pct": 27.99822255012188,
+      "median_ape_pct": 26.900605903089136,
+      "wape_pct": 27.456477726962436,
+      "r2": -4.194575605451249,
+      "sufficient": false
+     },
+     "Faridabad|sector_11": {
+      "n": 11,
+      "mae": 2682041.831321023,
+      "median_absolute_error": 2990563.8671875,
+      "rmse": 2918832.182714249,
+      "mape_pct": 47.00164876486964,
+      "median_ape_pct": 53.9105646381579,
+      "wape_pct": 43.06928488252737,
+      "r2": -2.3396052177421907,
+      "sufficient": false
+     },
+     "Faridabad|sector_87": {
+      "n": 11,
+      "mae": 2693642.599209872,
+      "median_absolute_error": 2206478.6010742188,
+      "rmse": 2822670.0481125982,
+      "mape_pct": 52.498770033954386,
+      "median_ape_pct": 46.11466841264205,
+      "wape_pct": 51.31636403066955,
+      "r2": -3.4118664549138247,
+      "sufficient": false
+     },
+     "Greater Noida|greater noida": {
+      "n": 11,
+      "mae": 6288486.995649858,
+      "median_absolute_error": 5194549.296875,
+      "rmse": 6586636.467920755,
+      "mape_pct": 139.37881337887111,
+      "median_ape_pct": 143.91823813384434,
+      "wape_pct": 134.73579460878153,
+      "r2": -16.41823295559625,
+      "sufficient": false
+     },
+     "Greater Noida|phi 2": {
+      "n": 11,
+      "mae": 5637082.939675071,
+      "median_absolute_error": 5392526.159667969,
+      "rmse": 5933584.645166975,
+      "mape_pct": 101.07909182528188,
+      "median_ape_pct": 90.0373427734375,
+      "wape_pct": 97.26731346890318,
+      "r2": -11.459889839881594,
+      "sufficient": false
+     },
+     "Greater Noida|sector_10": {
+      "n": 11,
+      "mae": 773992.3559126421,
+      "median_absolute_error": 714134.08203125,
+      "rmse": 881993.871343088,
+      "mape_pct": 19.896879455738535,
+      "median_ape_pct": 20.38543701171875,
+      "wape_pct": 19.473732651050003,
+      "r2": -1.1520267011019656,
+      "sufficient": false
+     },
+     "Greater Noida|tech zone": {
+      "n": 11,
+      "mae": 2203276.2832919033,
+      "median_absolute_error": 2200244.013671875,
+      "rmse": 2347918.175727855,
+      "mape_pct": 58.40367367807758,
+      "median_ape_pct": 60.50175641741071,
+      "wape_pct": 48.14469431110635,
+      "r2": -0.5261293517865184,
+      "sufficient": false
+     },
+     "Faridabad|sector_82": {
+      "n": 10,
+      "mae": 2811844.3986328123,
+      "median_absolute_error": 2694599.9716796875,
+      "rmse": 3235839.723137737,
+      "mape_pct": 45.947316840381944,
+      "median_ape_pct": 44.25862061713837,
+      "wape_pct": 46.40007258469988,
+      "r2": -0.16880901877970467,
+      "sufficient": false
+     },
+     "Greater Noida|c 16": {
+      "n": 10,
+      "mae": 1884810.5191894532,
+      "median_absolute_error": 1998335.2209472656,
+      "rmse": 1950027.7300051127,
+      "mape_pct": 36.392197013681205,
+      "median_ape_pct": 43.140923148802266,
+      "wape_pct": 33.40085981196975,
+      "r2": -0.8007834417824304,
+      "sufficient": false
+     },
+     "Greater Noida|pari chowk": {
+      "n": 10,
+      "mae": 1840726.9046386718,
+      "median_absolute_error": 1850553.6669921875,
+      "rmse": 2382828.595524632,
+      "mape_pct": 22.78914900910162,
+      "median_ape_pct": 16.360886395128464,
+      "wape_pct": 18.970698800769576,
+      "r2": 0.9383777991193873,
+      "sufficient": false
+     },
+     "Faridabad|sector_37": {
+      "n": 9,
+      "mae": 1205717.9762912327,
+      "median_absolute_error": 1163799.9248046875,
+      "rmse": 1525778.1002606463,
+      "mape_pct": 12.827327178413558,
+      "median_ape_pct": 11.637999248046874,
+      "wape_pct": 13.363869195346176,
+      "r2": 0.5153990961399211,
+      "sufficient": false
+     },
+     "Faridabad|sector_45": {
+      "n": 9,
+      "mae": 1946153.379014757,
+      "median_absolute_error": 1393260.52734375,
+      "rmse": 2499735.574417048,
+      "mape_pct": 28.37464292029999,
+      "median_ape_pct": 27.173492722284227,
+      "wape_pct": 28.76088737460232,
+      "r2": -0.5224174736885536,
+      "sufficient": false
+     },
+     "Faridabad|sector_76": {
+      "n": 9,
+      "mae": 2217534.8178168405,
+      "median_absolute_error": 2400786.904296874,
+      "rmse": 2281177.871243699,
+      "mape_pct": 62.114278596016305,
+      "median_ape_pct": 60.28102470930232,
+      "wape_pct": 56.23503341885478,
+      "r2": -2.6113901732108364,
+      "sufficient": false
+     },
+     "Greater Noida|sector pi": {
+      "n": 9,
+      "mae": 7416240.8712022565,
+      "median_absolute_error": 7375481.4892578125,
+      "rmse": 8236518.93054259,
+      "mape_pct": 119.4415268046769,
+      "median_ape_pct": 106.89103607620018,
+      "wape_pct": 82.60664336735188,
+      "r2": 0.4425695921674422,
+      "sufficient": false
+     },
+     "Faridabad|sector_21": {
+      "n": 8,
+      "mae": 4192243.3752441406,
+      "median_absolute_error": 2983950.2197265625,
+      "rmse": 5860205.359510129,
+      "mape_pct": 39.96811446517147,
+      "median_ape_pct": 32.687724451864916,
+      "wape_pct": 44.070889621488995,
+      "r2": -15.722882437498285,
+      "sufficient": false
+     },
+     "Faridabad|sector_21d": {
+      "n": 8,
+      "mae": 1714498.5339355469,
+      "median_absolute_error": 1383956.982421875,
+      "rmse": 2449686.084480879,
+      "mape_pct": 17.95671879907884,
+      "median_ape_pct": 16.06619146050347,
+      "wape_pct": 18.858776669165923,
+      "r2": -3.892609934227271,
+      "sufficient": false
+     },
+     "Faridabad|sector_31": {
+      "n": 8,
+      "mae": 2005059.034790039,
+      "median_absolute_error": 1514634.3627929688,
+      "rmse": 2754381.8213288514,
+      "mape_pct": 18.056059486894554,
+      "median_ape_pct": 16.020979678199403,
+      "wape_pct": 22.41854965523454,
+      "r2": 0.687435200175949,
+      "sufficient": false
+     },
+     "Faridabad|sector_46": {
+      "n": 8,
+      "mae": 1606403.1673583984,
+      "median_absolute_error": 697081.1401367188,
+      "rmse": 2243091.775912976,
+      "mape_pct": 18.51078624883006,
+      "median_ape_pct": 15.96740073297257,
+      "wape_pct": 20.52911395985174,
+      "r2": 0.576275743761804,
+      "sufficient": false
+     },
+     "Greater Noida|sector mu": {
+      "n": 8,
+      "mae": 3449406.993408203,
+      "median_absolute_error": 3191184.7021484375,
+      "rmse": 3902900.612941714,
+      "mape_pct": 57.48901099961326,
+      "median_ape_pct": 59.90423991966881,
+      "wape_pct": 60.64891416981456,
+      "r2": -9.533641539146966,
+      "sufficient": false
+     },
+     "Greater Noida|sector_16c": {
+      "n": 8,
+      "mae": 4134331.5107421875,
+      "median_absolute_error": 4071691.2109375,
+      "rmse": 4183242.721086274,
+      "mape_pct": 92.13391802182834,
+      "median_ape_pct": 92.90104467773436,
+      "wape_pct": 86.24420361391786,
+      "r2": -5.729100363473699,
+      "sufficient": false
+     },
+     "Faridabad|sector_48": {
+      "n": 7,
+      "mae": 4137503.9734933036,
+      "median_absolute_error": 4968057.6171875,
+      "rmse": 4485470.502316433,
+      "mape_pct": 52.85311796508532,
+      "median_ape_pct": 62.58592707936357,
+      "wape_pct": 53.63431076750579,
+      "r2": -29.038172935112456,
+      "sufficient": false
+     },
+     "Greater Noida|ace platinum": {
+      "n": 7,
+      "mae": 2956073.9327566964,
+      "median_absolute_error": 2696898.6328125,
+      "rmse": 3047415.581505988,
+      "mape_pct": 65.45363307493324,
+      "median_ape_pct": 65.72816450639205,
+      "wape_pct": 65.27608053405955,
+      "r2": -14.352575728538069,
+      "sufficient": false
+     },
+     "Greater Noida|pi 2": {
+      "n": 7,
+      "mae": 8729464.818777902,
+      "median_absolute_error": 8929509.677734375,
+      "rmse": 8756574.691268215,
+      "mape_pct": 166.0423821265154,
+      "median_ape_pct": 162.96134982638887,
+      "wape_pct": 164.70688337316795,
+      "r2": -257.04961647418907,
+      "sufficient": false
+     },
+     "Greater Noida|zeta 2": {
+      "n": 7,
+      "mae": 3182779.1819196427,
+      "median_absolute_error": 3411193.26171875,
+      "rmse": 3266751.417763681,
+      "mape_pct": 60.375661650896525,
+      "median_ape_pct": 58.54125719572368,
+      "wape_pct": 59.507089405548875,
+      "r2": -5.455889760284132,
+      "sufficient": false
+     },
+     "Faridabad|sector_28": {
+      "n": 6,
+      "mae": 6966061.024739583,
+      "median_absolute_error": 6699400.193359375,
+      "rmse": 7981294.986319843,
+      "mape_pct": 46.350937540005624,
+      "median_ape_pct": 35.81771122685185,
+      "wape_pct": 43.312296526878235,
+      "r2": -1.1150458913641255,
+      "sufficient": false
+     },
+     "Faridabad|sector_80": {
+      "n": 6,
+      "mae": 997424.5850423175,
+      "median_absolute_error": 898229.6086425781,
+      "rmse": 1119081.9163795735,
+      "mape_pct": 19.09352652787225,
+      "median_ape_pct": 18.105510691623444,
+      "wape_pct": 17.768846526882143,
+      "r2": 0.0436631663702618,
+      "sufficient": false
+     },
+     "Faridabad|sector_81": {
+      "n": 6,
+      "mae": 713129.2584479634,
+      "median_absolute_error": 480441.83349609375,
+      "rmse": 981016.962744668,
+      "mape_pct": 11.690065240285476,
+      "median_ape_pct": 4.044772450889443,
+      "wape_pct": 7.3229086953410585,
+      "r2": 0.9470465558170897,
+      "sufficient": false
+     },
+     "Greater Noida|chi 4": {
+      "n": 6,
+      "mae": 4366992.972005208,
+      "median_absolute_error": 3762928.22265625,
+      "rmse": 4872203.604504299,
+      "mape_pct": 45.74967177764464,
+      "median_ape_pct": 45.41947861115829,
+      "wape_pct": 48.147662315382675,
+      "r2": -3.6620473235726534,
+      "sufficient": false
+     },
+     "Greater Noida|omega 1": {
+      "n": 6,
+      "mae": 2617085.4934895835,
+      "median_absolute_error": 2384083.21875,
+      "rmse": 2690699.5554798106,
+      "mape_pct": 59.20817012198187,
+      "median_ape_pct": 57.49439238145616,
+      "wape_pct": 56.893162901947456,
+      "r2": -5.369381904274999,
+      "sufficient": false
+     },
+     "Greater Noida|sector_27": {
+      "n": 6,
+      "mae": 3893597.525065104,
+      "median_absolute_error": 1299349.328125,
+      "rmse": 6670954.954897157,
+      "mape_pct": 12.517391344941894,
+      "median_ape_pct": 9.80801277958974,
+      "wape_pct": 15.2940000984554,
+      "r2": 0.7657607228150649,
+      "sufficient": false
+     },
+     "Greater Noida|zeta": {
+      "n": 6,
+      "mae": 4070215.7019856772,
+      "median_absolute_error": 3766909.1606445312,
+      "rmse": 4254076.62488394,
+      "mape_pct": 62.87027793855279,
+      "median_ape_pct": 64.84563535156249,
+      "wape_pct": 61.053235529785155,
+      "r2": -7.804027641808403,
+      "sufficient": false
+     },
+     "Faridabad|ashoka enclave part 1": {
+      "n": 5,
+      "mae": 1861538.2714843745,
+      "median_absolute_error": 1823335.4003906231,
+      "rmse": 1980458.036250827,
+      "mape_pct": 29.163169053045785,
+      "median_ape_pct": 17.48486727627841,
+      "wape_pct": 24.623522109581675,
+      "r2": 0.5721096577336271,
+      "sufficient": false
+     },
+     "Faridabad|faridabad": {
+      "n": 5,
+      "mae": 2226497.543359375,
+      "median_absolute_error": 2199788.18359375,
+      "rmse": 2585854.9903920037,
+      "mape_pct": 30.525533817128135,
+      "median_ape_pct": 26.44897273137019,
+      "wape_pct": 27.555662665338797,
+      "r2": -1.1811867273405627,
+      "sufficient": false
+     },
+     "Faridabad|greenfield colony": {
+      "n": 5,
+      "mae": 2481856.5891601564,
+      "median_absolute_error": 2089423.291015625,
+      "rmse": 2822386.155072177,
+      "mape_pct": 44.35630403647325,
+      "median_ape_pct": 38.140578125000005,
+      "wape_pct": 44.63770843813231,
+      "r2": -0.8045178525605079,
+      "sufficient": false
+     },
+     "Faridabad|sainik colony": {
+      "n": 5,
+      "mae": 1889216.9255859375,
+      "median_absolute_error": 1813408.5205078125,
+      "rmse": 1957990.4887729166,
+      "mape_pct": 37.855197336751765,
+      "median_ape_pct": 31.712377204241072,
+      "wape_pct": 31.592256280701296,
+      "r2": 0.4000052031230117,
+      "sufficient": false
+     },
+     "Faridabad|sector_29": {
+      "n": 5,
+      "mae": 2158363.732421875,
+      "median_absolute_error": 1303891.6015625,
+      "rmse": 3033359.1733859004,
+      "mape_pct": 25.98885504115796,
+      "median_ape_pct": 19.71912109375,
+      "wape_pct": 29.729527994791667,
+      "r2": 0.13443822671165784,
+      "sufficient": false
+     },
+     "Faridabad|sector_30": {
+      "n": 5,
+      "mae": 1208640.637890625,
+      "median_absolute_error": 1190564.197265625,
+      "rmse": 1243017.9957193893,
+      "mape_pct": 16.350709228440618,
+      "median_ape_pct": 15.172708228326611,
+      "wape_pct": 15.945127148952837,
+      "r2": 0.3131695689534816,
+      "sufficient": false
+     }
+    },
+    "by_locality_count": 416,
+    "by_locality_insufficient_count": 397
+   },
+   "allCandidates": {
+    "xgboost": {
+     "mape_pct": 46.48408557460586,
+     "r2": 0.42190925594121953,
+     "wape_pct": 42.10693393510632
+    },
+    "locality_median_baseline": {
+     "mape_pct": 73.55699657855169,
+     "r2": 0.136151319474072,
+     "wape_pct": 62.14485609323115
+    },
+    "ridge": {
+     "mape_pct": 55.12754528637382,
+     "r2": 0.22765322183441972,
+     "wape_pct": 50.15963909598102
+    },
+    "random_forest": {
+     "mape_pct": 91.1261912399963,
+     "r2": -0.34226911452565045,
+     "wape_pct": 78.64698471036195
+    }
+   }
+  }
+ ]
+}

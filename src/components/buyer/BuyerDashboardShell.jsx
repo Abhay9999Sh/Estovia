@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   LogOut,
+Calculator,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useAuth } from "@/context/AuthContext";
@@ -26,6 +27,7 @@ const NAV = [
   { label: "Explore Projects", href: "/buyer/projects", icon: Building2 },
   { label: "Marketplace", href: "/buyer/marketplace", icon: Search },
   { label: "Saved & Compare", href: "/buyer/saved", icon: Bookmark },
+  { label: "Property Valuation", href: "/buyer/valuation", icon: Calculator },
   { label: "My Inquiries", href: "/buyer/inquiries", icon: FileText },
   { label: "Site Visits", href: "/buyer/site-visits", icon: CalendarClock },
   { label: "My Applications", href: "/buyer/applications", icon: FileText },

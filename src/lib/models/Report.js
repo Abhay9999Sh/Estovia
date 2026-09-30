@@ -22,6 +22,9 @@ const reportSchema = new mongoose.Schema(
     category: { type: String, trim: true, default: "" },
     description: { type: String, trim: true, default: "" },
     documents: { type: [String], default: [] },
+    // Context metadata (e.g. reported conversation / message ids) used to give
+    // moderators enough, and only enough, context to review a subject.
+    metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
 
     status: {
       type: String,

@@ -6,6 +6,10 @@ import bcrypt from "bcryptjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const SALT_ROUNDS = 10;
+const DEFAULT_EMAIL = "admin@estovia.in";
+const DEFAULT_PASSWORD = "changeme123";
+
 function loadEnv() {
   try {
     const envPath = resolve(__dirname, "..", ".env.local");
@@ -36,8 +40,6 @@ function parseArgs() {
   return parsed;
 }
 
-const SALT_ROUNDS = 10;
-
 const userSchema = new mongoose.Schema(
   {
     name: String,
@@ -56,22 +58,38 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+/**
+ * Creates the Estovia admin account.
+ *
+ * Non-destructive & idempotent:
+ *  - Existing admin accounts are never deleted.
+ *  - If the target admin already exists, only the password is reset when the
+ *    supplied password differs (or --reset-password is passed explicitly) so a
+ *    concurrent admin login does not get silently broken during development.
+ *  - Credentials can be overridden via CLI flags or ADMIN_EMAIL / ADMIN_PASSWORD
+ *    environment variables. Defaults: admin@estovia.in / changeme123
+ */
 async function main() {
   const env = loadEnv();
   const args = parseArgs();
 
-  const MONGODB_URI = env.MONGODB_URI;
+  const MONGODB_URI = env.MONGODB_URI || args.mongoUri;
   const MONGODB_DB = env.MONGODB_DB || "estovia";
-
   if (!MONGODB_URI) {
-    console.error("Error: MONGODB_URI not found in .env.local");
+    console.error("Error: MONGODB_URI not found in .env.local (or --mongoUri).");
     process.exit(1);
   }
 
-  const email = (args.email || "admin@estovia.in").toLowerCase();
-  const password = args.password || "admin123";
-  const name = args.name || "Admin";
+  const email = (args.email || env.ADMIN_EMAIL || DEFAULT_EMAIL).toLowerCase();
   const username = (args.username || "admin").toLowerCase();
+  const password = args.password || env.ADMIN_PASSWORD || DEFAULT_PASSWORD;
+  const name = args.name || "Admin";
+  const resetPassword = args["reset-password"] === "true";
+
+  if (password.length < 8) {
+    console.error("Error: password must be at least 8 characters.");
+    process.exit(1);
+  }
 
   console.log(`Connecting to MongoDB (${MONGODB_DB})...`);
   await mongoose.connect(MONGODB_URI, { dbName: MONGODB_DB });
@@ -79,23 +97,39 @@ async function main() {
 
   const User = mongoose.models.User || mongoose.model("User", userSchema);
 
-  // Step 1: Remove all existing admin accounts to start clean
-  const deleted = await User.deleteMany({ roles: "admin" });
-  console.log(`Removed ${deleted.deletedCount} existing admin account(s).`);
+  const existing = await User.findOne({ email }).select("+passwordHash");
 
-  // Step 2: Also remove any duplicates with same email or username
-  const byEmail = await User.findOne({ email });
-  if (byEmail) {
-    await User.findByIdAndDelete(byEmail._id);
-    console.log(`Removed duplicate account with email: ${email}`);
-  }
-  const byUsername = await User.findOne({ username });
-  if (byUsername) {
-    await User.findByIdAndDelete(byUsername._id);
-    console.log(`Removed duplicate account with username: ${username}`);
+  if (existing) {
+    const valid = await bcrypt.compare(password, existing.passwordHash);
+    let changed = false;
+
+    if (!valid && resetPassword) {
+      existing.passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      existing.username = username;
+      existing.roles = existing.roles?.includes("admin") ? existing.roles : ["admin", ...(existing.roles || [])];
+      existing.roles = [...new Set(existing.roles)];
+      existing.profileCompleted = true;
+      existing.accountStatus = existing.accountStatus || "active";
+      await existing.save();
+      changed = true;
+    }
+
+    console.log(`\nAdmin account already exists:`);
+    console.log(`  Email:    ${existing.email}`);
+    console.log(`  Username: ${existing.username || username}`);
+    console.log(`  Roles:    ${existing.roles}`);
+    console.log(`  Status:   ${existing.accountStatus}`);
+    console.log(`  Password matches '${password}': ${valid ? "OK" : "NO"}`);
+    if (!valid && !resetPassword) {
+      console.log(`\n  Password does NOT match '${password}'.`);
+      console.log("  Re-run with `node scripts/create-admin.mjs --reset-password true` to reset it.");
+    }
+    if (changed) console.log(`  Password reset to '${password}'.`);
+    await mongoose.disconnect();
+    console.log("\nDone.");
+    process.exit(valid || changed ? 0 : 1);
   }
 
-  // Step 3: Create the single admin account using $set (no .save() bug)
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
   const admin = await User.create({
@@ -109,7 +143,6 @@ async function main() {
     verification: { identity: "verified", address: "verified", phone: "verified" },
   });
 
-  // Step 4: Verify the passwordHash persisted correctly
   const verify = await User.findById(admin._id).select("+passwordHash");
   const passwordValid = await bcrypt.compare(password, verify.passwordHash);
 
@@ -121,7 +154,6 @@ async function main() {
   console.log(`  Status:   ${verify.accountStatus}`);
   console.log(`  Password hash verified: ${passwordValid ? "OK" : "FAILED"}`);
 
-  // Step 5: Confirm only one admin exists
   const adminCount = await User.countDocuments({ roles: "admin" });
   console.log(`  Total admins in DB: ${adminCount}`);
 

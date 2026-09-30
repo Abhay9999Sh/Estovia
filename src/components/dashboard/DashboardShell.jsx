@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   LogOut,
+  Calculator,
   ChevronRight,
   Bell,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const NAV = [
   { label: "My Profile", href: "/landowner/profile", icon: User },
   { label: "My Land", href: "/landowner/land", icon: Map },
   { label: "Add Land", href: "/landowner/land/new", icon: PlusSquare },
+  { label: "Valuation", href: "/landowner/valuation", icon: Calculator },
   { label: "Interested Buyers", href: "/landowner/interests?type=buyer", icon: Users },
   { label: "Builder Requests", href: "/landowner/interests?type=builder", icon: HardHat },
   { label: "Proposals", href: "/landowner/proposals", icon: FileText },

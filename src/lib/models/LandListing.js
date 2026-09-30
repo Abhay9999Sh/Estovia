@@ -101,7 +101,7 @@ const landListingSchema = new mongoose.Schema(
     verificationStatus: {
       type: String,
       default: "draft",
-      enum: ["draft", "submitted", "under_review", "partially_verified", "verified", "rejected"],
+      enum: ["draft", "submitted", "under_review", "needs_information", "partially_verified", "verified", "rejected"],
     },
     status: {
       type: String,

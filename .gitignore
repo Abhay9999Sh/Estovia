@@ -30,8 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+# ...but the committed template is safe and documents required variables.
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# --- ML training payload -----------------------------------------------------
+# The training corpus, raw source archives and the 22 MB JSON model dump are
+# reproducible from the scripts in ml-service/ and must not be committed.
+# Regenerate with: ml-service/scripts/build_dataset.py + train.py
+ml-service/data/
+ml-service/artifacts/model_*.json
+ml-service/artifacts/evaluation_*.json
+ml-service/artifacts/registry.json
+ml-service/__pycache__/
+**/__pycache__/
+
+# The RUNTIME artefacts under src/lib/valuation/artifacts ARE committed on
+# purpose: the app cannot value anything without them, and they are the
+# verified model this deployment serves. Do not add that directory here.

@@ -24,7 +24,7 @@ const verificationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "submitted", "under_review", "verified", "not_found", "mismatch", "rejected", "manual_review"],
+      enum: ["pending", "submitted", "under_review", "needs_information", "verified", "not_found", "mismatch", "rejected", "manual_review"],
       default: "pending",
     },
     // RERA fields

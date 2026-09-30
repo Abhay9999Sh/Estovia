@@ -18,7 +18,7 @@ const conversationSchema = new mongoose.Schema(
     },
     context: {
       type: String,
-      enum: ["landowner_builder", "builder_supplier", "builder_buyer", "landowner_buyer"],
+      enum: ["landowner_builder", "builder_supplier", "builder_buyer", "landowner_buyer", "general"],
       default: "landowner_builder",
       index: true,
     },

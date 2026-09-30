@@ -37,11 +37,18 @@ export function timeAgo(input) {
   return `${years}y ago`;
 }
 
+export function timeShort(input) {
+  if (!input) return "";
+  const d = new Date(input);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+}
+
 const TONE_MAP = {
   success: ["verified", "active", "approved", "approved ", "completed", "accepted", "available", "ordered", "open", "sold", "registered", "allotted", "fulfilled", "delivered", "on hold"],
-  danger: ["rejected", "rejected ", "cancelled", "closed", "expired", "withdrawn", "noshow", "blocked", "suspended", "deactivated", "disputed", "problem", "manual review", "resolved?"],
-  warning: ["pending", "paused", "submitted", "under_review", "under review", "under maintenance", "on hold ", "in transit", "partial", "partially delivered", "initiated", "waiting_for_information"],
-  info: ["booked", "reserved", "negotiation", "responses received", "shortlisted", "quotation selected", "in production", "under verification", "draft", "rfi", "waiting", "sent"],
+  danger: ["rejected", "rejected ", "cancelled", "closed", "expired", "withdrawn", "noshow", "blocked", "suspended", "deactivated", "disputed", "problem", "manual review", "resolved?", "not_found", "mismatch"],
+  warning: ["pending", "paused", "submitted", "under_review", "under review", "needs_information", "under maintenance", "in transit", "partial", "partially delivered", "initiated", "waiting_for_information"],
+  info: ["booked", "reserved", "negotiation", "responses received", "shortlisted", "quotation selected", "in production", "under verification", "draft", "rfi", "waiting", "sent", "manual_review"],
 };
 
 export function statusTone(status) {

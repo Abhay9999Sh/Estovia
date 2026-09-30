@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { verificationMetaField } from "@/lib/models/verificationItem";
 
 const buyerPreferenceSchema = new mongoose.Schema(
   {
@@ -44,10 +45,13 @@ const buyerProfileSchema = new mongoose.Schema(
 
     // Verification (identity/address). Never faked.
     verification: {
-      identity: { type: String, default: "pending", enum: ["pending", "submitted", "verified", "rejected"] },
-      address: { type: String, default: "pending", enum: ["pending", "submitted", "verified", "rejected"] },
-      pan: { type: String, default: "pending", enum: ["pending", "submitted", "verified", "rejected"] },
+      identity: { type: String, default: "pending", enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"] },
+      address: { type: String, default: "pending", enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"] },
+      pan: { type: String, default: "pending", enum: ["pending", "submitted", "under_review", "needs_information", "verified", "rejected"] },
     },
+
+    // Per-field review trail (rejection reason, reviewer, timestamps).
+    verificationMeta: verificationMetaField(),
 
     // STEP 3 - Preferences
     preferences: { type: buyerPreferenceSchema, default: () => ({}) },
@@ -58,6 +62,11 @@ const buyerProfileSchema = new mongoose.Schema(
     },
 
     onboardingComplete: { type: Boolean, default: false },
+
+    // Present on every role profile so an admin review is always attributable.
+    reviewNotes: { type: String, default: "" },
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    reviewedAt: { type: Date, default: null },
   },
   {
     timestamps: true,
@@ -65,6 +74,7 @@ const buyerProfileSchema = new mongoose.Schema(
 );
 
 buyerProfileSchema.index({ userId: 1 });
+buyerProfileSchema.index({ "verification.pan": 1 });
 
 export default mongoose.models.BuyerProfile ||
   mongoose.model("BuyerProfile", buyerProfileSchema);
